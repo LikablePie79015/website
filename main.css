@@ -1,5 +1,5 @@
 body {
-  background-color: #006fd6
+  background-color: #f700ff
 }
 
 body h3 {
@@ -7,10 +7,12 @@ body h3 {
   font-style: italic;
   border-radius: 6px;
   background-color: aliceblue;
+  font-size: xx-large;
 }
 
 body p {
   font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
   background-color: antiquewhite;
   border-radius: 6px;
+  font-size: larger;
 }
