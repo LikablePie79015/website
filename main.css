@@ -8,3 +8,9 @@ body h3 {
   border-radius: 6px;
   background-color: aliceblue;
 }
+
+body p {
+  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+  background-color: antiquewhite;
+  border-radius: 6px;
+}
