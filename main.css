@@ -1,0 +1,10 @@
+body {
+  background-color: #00fff2
+}
+
+body h3 {
+  font-family: 'Courier New', Courier, monospace;
+  font-style: italic;
+  border-radius: 6px;
+  background-color: aliceblue;
+}
