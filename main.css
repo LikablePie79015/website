@@ -21,6 +21,10 @@ body hr {
   margin: 5vw 0;
 }
 
+a {
+  cursor: pointer;
+}
+
 .learn1 {
   display: flex;
   justify-content: center;
