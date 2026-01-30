@@ -16,3 +16,16 @@ body p {
   border-radius: 6px;
   font-size: larger;
 }
+
+body hr {
+  margin: 5vw 0;
+}
+
+.learn1 {
+  display: flex;
+  justify-content: center;
+}
+
+.learn1 p {
+  margin: 0 10px;
+}
