@@ -1,0 +1,13 @@
+body {
+  background-color: aquamarine;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+p {
+  font-size: clamp(2em, 10vw, 10em);
+  font-family: 'Consolas', 'Courier New';
+}
