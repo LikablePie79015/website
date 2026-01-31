@@ -18,6 +18,7 @@ const buttonNum7 = document.querySelector(".num-7");
 const buttonNum8 = document.querySelector(".num-8");
 const buttonNum9 = document.querySelector(".num-9");
 const buttonNum0 = document.querySelector(".num-0");
+const buttonDot = document.querySelector(".dot");
 
 const buttonC = document.querySelector(".C");
 const buttonCE = document.querySelector(".CE");
@@ -26,11 +27,32 @@ const buttonBackspace = document.querySelector(".backspace");
 let cache = [];
 let nowNum = new Decimal(0);
 
+/**
+ * 添加一个字符，添加 0~9
+ * @param {String} digit - 要添加的数字
+ */
 function AddDigit(digit) {
-  nowNum = nowNum.times(10).plus(digit);
-  nowInput.value = nowNum.toString();
+  if (nowInput.value === "0") nowInput.value = "";
+  nowInput.value += digit;
+  nowNum = new Decimal(nowInput.value);
 }
 
+/**
+ * 当前是够有小数点
+ */
+let hasPoint = false;
+/**
+ * 添加小数点
+ */
+function AddPoint() {
+  if (hasPoint) { return; }
+  hasPoint = true;
+  nowInput.value += ".";
+}
+
+/**
+ * 清除所有
+ */
 function ClearAll() {
   cache = [];
   nowNum = new Decimal(0);
@@ -38,11 +60,17 @@ function ClearAll() {
   cacheInput.value = "";
 }
 
+/**
+ * 仅清除当前数字
+ */
 function ClearNow() {
   nowInput.value = "0";
   nowNum = new Decimal(0);
 }
 
+/**
+ * 退格
+ */
 function Backspace() {
   let temp = nowInput.value;
   temp = temp.substring(0, temp.length - 1);
@@ -61,6 +89,7 @@ buttonNum6.addEventListener("click", function() { AddDigit("6"); });
 buttonNum7.addEventListener("click", function() { AddDigit("7"); });
 buttonNum8.addEventListener("click", function() { AddDigit("8"); });
 buttonNum9.addEventListener("click", function() { AddDigit("9"); });
+buttonDot.addEventListener("click", function() { AddPoint(); });
 
 buttonC.addEventListener("click", function() { ClearAll(); });
 buttonCE.addEventListener("click", function() { ClearNow(); });
@@ -80,4 +109,5 @@ document.addEventListener("keydown", function(e) {
   if (e.key == "c") { ClearNow(); return; }
   if (e.key == "C") { ClearAll(); return; }
   if (e.key == "Backspace") { Backspace(); return; }
+  if (e.key == ".") { AddPoint(); return; }
 });
