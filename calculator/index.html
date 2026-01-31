@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  
+  <title>Calculator</title>
+</head>
+<body>
+  <div class="wholePage">
+    <div class="Calculator">
+      <div class="displayArea">
+        <input class="cacheInput" type="text" disabled value="">
+        <input class="nowInput" type="text" disabled value="0">
+      </div>
+      <div class="operateArea">
+        <div class="column1">
+          <button class="btn power-2">\(x^2\)</button>
+          <button class="btn power-y">\(x^y\)</button>
+          <button class="btn sin">\(\sin\)</button>
+          <button class="btn cos">\(\cos\)</button>
+          <button class="btn tan">\(\tan\)</button>
+        </div>
+        <div class="column2">
+          <button class="btn sqrtroot">\(\sqrt{\phantom{x}}\)</button>
+          <button class="btn 10-power">\(10^x\)</button>
+          <button class="btn lg">\(\lg\)</button>
+          <button class="btn exp">\(\exp\)</button>
+          <button class="btn mod">\(\mathrm{mod}\)</button>
+        </div>
+        <div class="column3">
+          <button class="btn uparrow">\(\uparrow\)</button>
+          <button class="btn CE">\(\text{CE}\)</button>
+          <button class="btn C">\(\text{C}\)</button>
+          <button class="btn backspace">⌫</button>
+          <button class="btn divide op">\(\div\)</button>
+        </div>
+        <div class="column4">
+          <button class="btn pi">\(\pi\)</button>
+          <button class="btn num num-7">\(7\)</button>
+          <button class="btn num num-8">\(8\)</button>
+          <button class="btn num num-9">\(9\)</button>
+          <button class="btn times op">\(\times\)</button>
+        </div>
+        <div class="column5">
+          <button class="btn fact">\(n!\)</button>
+          <button class="btn num num-4">\(4\)</button>
+          <button class="btn num num-5">\(5\)</button>
+          <button class="btn num num-6">\(6\)</button>
+          <button class="btn minus op">\(-\)</button>
+        </div>
+        <div class="column6">
+          <button class="btn pm">\(\pm\)</button>
+          <button class="btn num num-1">\(1\)</button>
+          <button class="btn num num-2">\(2\)</button>
+          <button class="btn num num-3">\(3\)</button>
+          <button class="btn plus op">\(+\)</button>
+        </div>
+        <div class="column7">      
+          <button class="btn leftbracket">\((\)</button>
+          <button class="btn rightbracket">\()\)</button>
+          <button class="btn num num-0">\(0\)</button>
+          <button class="btn dot">\(.\)</button>
+          <button class="btn equals op">\(=\)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS_CHTML"></script>
+  <script src="https://cdn.jsdelivr.net/npm/decimal.js@10/decimal.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

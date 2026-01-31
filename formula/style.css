@@ -1,0 +1,9 @@
+.wholePage p {
+  font-family: 'Comic Sans MS';
+  font-size: 14pt;
+}
+
+.wholePage {
+  width: 100vw;
+  height: 100vh;
+}

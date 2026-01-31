@@ -1,0 +1,66 @@
+body {
+  background-color: bisque;
+}
+
+.wholePage {
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.Calculator {
+  margin: 0;
+  display: flex;
+  width: 375px;
+  flex-direction: column;
+  align-items: center;
+}
+
+.displayArea input {
+  width: 385px;
+  height: 40px;
+  /* text-align: right; */
+  direction: rtl;
+  font-size: 20pt;
+  font-family: 'Times New Roman', Times, serif;
+  color: black;
+  box-sizing: border-box;
+}
+
+.operateArea {
+  display: flex;
+  flex-direction: column;
+}
+
+.column1, .column2, .column3, .column4, .column5, .column6, .column7 {
+  display: flex;
+}
+
+.btn {
+  width: 75px;
+  height: 45px;
+  margin: 1px 1px;
+  background-color: beige;
+  border-radius: 6px;
+  border-width: 2px;
+  font-size: 14pt;
+}
+
+.btn:hover {
+  background-color: hsl(60, 56%, 81%);
+}
+
+.btn:active {
+  transform: translate(1px, 1px);
+}
+
+.num {
+  background-color: azure;
+}
+
+.op:hover {
+  background-color: rgb(250, 250, 111);
+}
