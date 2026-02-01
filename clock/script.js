@@ -16,4 +16,4 @@ function Clock() {
   setTimeout(Clock, 500);
 }
 
-document.addEventListener("load", Clock());
+Clock();
