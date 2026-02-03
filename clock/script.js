@@ -26,7 +26,7 @@ function ParseTime(dateStr, timeStr) {
 
 function Clock() {
   let now = new Date();
-  let hour = now.getHours();
+  let hour = EnsureFormat(now.getHours());
   let minute = EnsureFormat(now.getMinutes());
   let second = EnsureFormat(now.getSeconds());
   time.innerHTML = `${hour}:${minute}:${second}`;
