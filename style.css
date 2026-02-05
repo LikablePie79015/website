@@ -30,8 +30,18 @@ a {
   justify-content: center;
   border: solid 1px;
   border-radius: 6px;
+  p {
+    margin: 0 10px;
+  }
 }
 
-.learn1 p {
-  margin: 0 10px;
+.footer {
+  width: 100vw;
+  height: 10vh;
+  display: flex;
+  background-color: gray;
+  align-items: center;
+  a {
+    margin: 0 10px;
+  }
 }
