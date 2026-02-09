@@ -1,0 +1,45 @@
+body {
+  background-color: #6e7b6c;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.authentication {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+
+  input {
+    height: 30px;
+    margin: 0 0 10px 0;
+    border: none;
+    border-radius: 10px;
+    outline: none;
+  }
+
+  button {
+    cursor: pointer;
+    height: 30px;
+    width: 100px;
+    margin: 0 0 0 50px;
+    border-radius: 10px;
+  }
+}
+
+.diary {
+  width: 70%;
+  background-color: #fde6e0;
+  margin: 50vh 0;
+  padding: 2em;
+
+  p {
+    text-indent: 2em;
+    font-size: 12pt;
+  }
+}
