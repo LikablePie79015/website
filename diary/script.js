@@ -27,4 +27,3 @@ button.addEventListener("click", function() { CheckPassword() });
 input.addEventListener("keyup", function(e) {
   if (e.key == "Enter") { CheckPassword(); }
 });
-diary.setAttribute("style", "display: none");
