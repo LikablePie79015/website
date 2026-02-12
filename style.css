@@ -36,12 +36,11 @@ a {
 }
 
 .footer {
-  width: 100vw;
-  height: 10vh;
   display: flex;
+  flex-wrap: wrap;
   background-color: gray;
   align-items: center;
   a {
-    margin: 0 10px;
+    margin: 20px 10px;
   }
 }
