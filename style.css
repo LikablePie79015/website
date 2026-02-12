@@ -10,11 +10,11 @@ body {
   font-size: xx-large;
 }
 
-.wholePage p {
+.wholePage p, .area2 {
   font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
   background-color: antiquewhite;
   border-radius: 6px;
-  font-size: larger;
+  font-size: 14pt;
 }
 
 .wholePage hr {
@@ -25,7 +25,7 @@ a {
   cursor: pointer;
 }
 
-.learn1 {
+.area1 {
   display: flex;
   justify-content: center;
   border: solid 1px;
@@ -36,12 +36,11 @@ a {
 }
 
 .footer {
-  width: 100vw;
-  height: 10vh;
   display: flex;
+  flex-wrap: wrap;
   background-color: gray;
   align-items: center;
   a {
-    margin: 0 10px;
+    margin: 20px 10px;
   }
 }

@@ -12,16 +12,31 @@ const button = document.querySelector(".btn");
 const diary = document.querySelector(".diary");
 
 function CheckPassword() {
+  if (!input.value) return ;
+
   const promise = sha256(input.value);
-  promise.then((result) => {
-    if (result == "9f56b1d66573c5e2f1285506f342b133c02e8c374f3db301fdebdf785211b959") {
+  promise.then(async (pwd) => {
+    const res = await fetch("https://api.2095607220.workers.dev", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store"
+      },
+      body: JSON.stringify({ password: pwd })
+    });
+
+    if (res.status === 200) {
+      const html = await res.text();
+      diary.innerHTML = html;
       authentication.setAttribute("style", "display: none;");
       diary.setAttribute("style", "display: block;");
     } else {
       alert("密码错误！");
+      input.value = "";
     }
   });
 }
+
 
 button.addEventListener("click", function() { CheckPassword() });
 input.addEventListener("keyup", function(e) {
