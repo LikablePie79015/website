@@ -454,6 +454,22 @@
     }
 
     .mg-btn-next:active { transform: translateY(0); }
+
+    /* =============================
+       匹配成功：视频特效
+       自动播放、静音、不遮挡操作
+    ============================= */
+    .mg-match-video-wrap {
+      position: fixed;
+      pointer-events: none;
+      z-index: 2000;
+      transform: translate(-50%, -50%);
+    }
+
+    .mg-match-video-wrap video {
+      display: block;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -491,22 +507,45 @@
   <script>
   /**
    * ============================================================
-   *  人物数据列表 —— 只需修改这里即可替换游戏内容
-   *  每个对象包含：
-   *    name    : 人物名字（卡片正面显示）
-   *    message : 配对成功后弹窗里展示的话
+   *  游戏统一配置区域 —— 所有可修改内容集中在此处
    * ============================================================
    */
-  const characterData = [
-    { name: "小明", message: "今天也要加油呀！无论遇到什么困难，都要微笑着面对。" },
-    { name: "小红", message: "别忘记吃饭哦，身体是最重要的。" },
-    { name: "阿哲", message: "慢慢来，比较快。不急不躁，稳稳前行。" },
-    { name: "小鱼", message: "每一天都是新的开始，昨天的烦恼就随风去吧。" },
-    { name: "阿宝", message: "记得多喝热水，天气变化大，多保重！" },
-    { name: "小蝶", message: "你已经很棒啦，不要总是和自己较劲儿。" },
-    { name: "大牛", message: "踏实做事，静待花开。努力的人运气都不会太差。" },
-    { name: "晓晓", message: "今天有没有好好休息？早点睡，明天见！" }
-  ];
+  const GAME_CONFIG = {
+
+    /* ---------- 音频资源路径 ---------- */
+    /** 背景音乐（放在与网页同目录下） */
+    bgmPath: './bgm.mp3',
+    /** 匹配成功"打响指"音效 */
+    snapSoundPath: './snap.ogg',
+    /** 匹配成功时的视频特效（放在与网页同目录下） */
+    matchEffectVideoPath: './snap-effect.mp4',
+
+    /* ---------- 音量配置 ---------- */
+    /** 正常游戏时背景音乐音量 */
+    bgmVolume: 0.5,
+    /** 显示大纸条弹窗时的背景音乐音量 */
+    bgmPopupVolume: 0.2,
+    /** 打响指音效音量 */
+    snapSoundVolume: 1,
+
+    /* ---------- 人物数据列表 ---------- */
+    /**
+     * 每个对象包含：
+     *   name    : 人物名字（卡片正面显示）
+     *   message : 配对成功后弹窗里展示的话
+     * 后续只需修改此处即可替换游戏内容
+     */
+    characterData: [
+      { name: "小明", message: "今天也要加油呀！无论遇到什么困难，都要微笑着面对。" },
+      { name: "小红", message: "别忘记吃饭哦，身体是最重要的。" },
+      { name: "阿哲", message: "慢慢来，比较快。不急不躁，稳稳前行。" },
+      { name: "小鱼", message: "每一天都是新的开始，昨天的烦恼就随风去吧。" },
+      { name: "阿宝", message: "记得多喝热水，天气变化大，多保重！" },
+      { name: "小蝶", message: "你已经很棒啦，不要总是和自己较劲儿。" },
+      { name: "大牛", message: "踏实做事，静待花开。努力的人运气都不会太差。" },
+      { name: "晓晓", message: "今天有没有好好休息？早点睡，明天见！" }
+    ]
+  };
 
 
   /**
@@ -529,6 +568,11 @@
     let _waitingModal = false;
     let _finishCb     = null;
     let _currentData  = null;
+
+    /* ---------- 音频状态 ---------- */
+    let _bgmAudio     = null;
+    let _snapAudio    = null;
+    let _bgmVolumeTimer = null;
 
     /* ---------- DOM 引用 ---------- */
     const _wrapper      = document.getElementById('mg-wrapper');
@@ -561,6 +605,180 @@
     function _rand(min, max) {
       return Math.random() * (max - min) + min;
     }
+
+    /* =============================
+       背景音乐控制
+    ============================= */
+
+    /** 自然渐变 BGM 音量到目标值 */
+    function _fadeBGMVolume(targetVol, duration) {
+      if (!_bgmAudio) return;
+      clearInterval(_bgmVolumeTimer);
+      const startVol = _bgmAudio.volume;
+      const diff     = targetVol - startVol;
+      if (Math.abs(diff) < 0.01) { _bgmAudio.volume = targetVol; return; }
+      const steps = Math.max(6, Math.round(duration / 50));
+      let step = 0;
+      _bgmVolumeTimer = setInterval(() => {
+        step++;
+        _bgmAudio.volume = startVol + diff * (step / steps);
+        if (step >= steps) {
+          _bgmAudio.volume = targetVol;
+          clearInterval(_bgmVolumeTimer);
+          _bgmVolumeTimer = null;
+        }
+      }, duration / steps);
+    }
+
+    /** 开始 / 恢复播放 BGM（处理浏览器自动播放限制） */
+    function _startBGM() {
+      if (!GAME_CONFIG.bgmPath) return;
+      if (_bgmAudio) {
+        _bgmAudio.play().catch(() => {});
+        return;
+      }
+      _bgmAudio = new Audio(GAME_CONFIG.bgmPath);
+      _bgmAudio.loop = true;
+      _bgmAudio.volume = GAME_CONFIG.bgmVolume;
+      /* 兜底：以防 loop 属性不生效，ended 事件手动重新播放 */
+      _bgmAudio.addEventListener('ended', function () {
+        _bgmAudio && _bgmAudio.play().catch(() => {});
+      });
+      _tryPlayBGM();
+    }
+
+    /** 尝试播放，若被浏览器拦截则监听首次交互后播放 */
+    function _tryPlayBGM() {
+      if (!_bgmAudio) return;
+      const p = _bgmAudio.play();
+      if (p && typeof p.catch === 'function') {
+        p.catch(() => {
+          const handler = function () {
+            _bgmAudio && _bgmAudio.play().catch(() => {});
+            document.removeEventListener('click', handler);
+            document.removeEventListener('touchstart', handler);
+          };
+          document.addEventListener('click', handler);
+          document.addEventListener('touchstart', handler);
+        });
+      }
+    }
+
+    /** 停止 BGM 并释放资源 */
+    function _stopBGM() {
+      clearInterval(_bgmVolumeTimer);
+      _bgmVolumeTimer = null;
+      if (!_bgmAudio) return;
+      _bgmAudio.pause();
+      _bgmAudio.currentTime = 0;
+      _bgmAudio = null;
+    }
+
+    /* =============================
+       匹配成功"打响指"反馈
+    ============================= */
+
+    /**
+     * 播放匹配成功反馈：音效 + 视频特效
+     * @param {HTMLElement} cardA - 第一张匹配卡片
+     * @param {HTMLElement} cardB - 第二张匹配卡片
+     * @param {Function} onComplete - 视频播放完成后的回调（可选）
+     */
+    function _playSnapEffect(cardA, cardB, onComplete) {
+      /* ---- 音效：每次新建实例，确保可连续触发 ---- */
+      if (GAME_CONFIG.snapSoundPath) {
+        const sfx = new Audio(GAME_CONFIG.snapSoundPath);
+        sfx.volume = GAME_CONFIG.snapSoundVolume;
+        sfx.play().catch(() => {});
+      }
+
+      /* ---- 视频特效：在每张卡片位置播放 ---- */
+      if (!GAME_CONFIG.matchEffectVideoPath) {
+        // 没有视频时，直接调用回调
+        if (typeof onComplete === 'function') onComplete();
+        return;
+      }
+
+      let completedCount = 0;
+      const totalVideos = 2;
+
+      // 为两张卡片分别创建视频特效
+      [cardA, cardB].forEach(card => {
+        // 如果已有视频在播放，先移除（防止连续匹配时叠加）
+        const oldWrap = card._videoWrap;
+        if (oldWrap) oldWrap.remove();
+
+        // 获取卡片位置和尺寸
+        const rect = card.getBoundingClientRect();
+        const cardWidth = rect.width;
+        const cardHeight = rect.height;
+
+        // 创建包裹容器
+        const wrap = document.createElement('div');
+        wrap.className = 'mg-match-video-wrap';
+        wrap.style.left = (rect.left + cardWidth / 2) + 'px';
+        wrap.style.top = (rect.top + cardHeight / 2) + 'px';
+
+        // 创建视频元素
+        const video = document.createElement('video');
+        video.src = GAME_CONFIG.matchEffectVideoPath;
+        video.autoplay = true;
+        video.muted = true;
+        video.playsInline = true;
+        video.controls = false;
+        video.loop = false;
+        video.setAttribute("playsinline", "");
+        video.setAttribute("webkit-playsinline", "");
+
+        // 设置视频尺寸（跟随卡片大小）
+        const videoSize = cardWidth * 0.7;
+        video.style.width = videoSize + 'px';
+        video.style.height = 'auto';
+
+        // 确保视频加载后自动播放
+        video.addEventListener('loadeddata', function() {
+          video.play().catch(() => {});
+        });
+
+        const checkComplete = function() {
+          completedCount++;
+          if (completedCount >= totalVideos) {
+            if (typeof onComplete === 'function') onComplete();
+          }
+        };
+
+        video.addEventListener('ended', function () {
+          wrap.remove();
+          card._videoWrap = null;
+          checkComplete();
+        });
+
+        video.addEventListener('error', function () {
+          wrap.remove();
+          card._videoWrap = null;
+          checkComplete();
+        });
+
+        wrap.appendChild(video);
+        document.body.appendChild(wrap);
+
+        // 保存引用，方便后续移除
+        card._videoWrap = wrap;
+
+        // 尝试立即播放（某些浏览器可能需要用户交互）
+        video.play().catch(() => {
+          // 如果自动播放失败，等待用户交互
+          const resumePlay = function() {
+            video.play().catch(() => {});
+            document.removeEventListener('click', resumePlay);
+            document.removeEventListener('touchstart', resumePlay);
+          };
+          document.addEventListener('click', resumePlay);
+          document.addEventListener('touchstart', resumePlay);
+        });
+      });
+    }
+
 
     /**
      * 根据人物数量与屏幕尺寸计算最优列数
@@ -651,12 +869,16 @@
       _modalMsg.textContent  = message;
       _overlay.classList.add('mg-modal--visible');
       _waitingModal = true;
+      /* 弹窗打开时渐变降低 BGM 音量 */
+      _fadeBGMVolume(GAME_CONFIG.bgmPopupVolume, 400);
     }
 
     function _closeModal() {
       _overlay.classList.remove('mg-modal--visible');
       _waitingModal = false;
       _isLocked = false;
+      /* 弹窗关闭时渐变恢复 BGM 音量 */
+      _fadeBGMVolume(GAME_CONFIG.bgmVolume, 500);
 
       if (_matchedCount === _totalPairs) {
         _triggerFinish();
@@ -668,6 +890,8 @@
     ============================= */
 
     function _triggerFinish() {
+      _stopBGM();
+
       setTimeout(() => {
         _container.classList.add('mg-fade-out');
         setTimeout(() => {
@@ -728,10 +952,13 @@
           }, ANIM_DURATION);
 
           const char = _findCharacter(nameA);
-          // 弹窗在动画开始后稍等一下再出现，让用户先看完动画
-          setTimeout(() => {
-            _openModal(char.name, char.message);
-          }, 400);
+          // 等待视频播放结束后再显示大纸条弹窗
+          _playSnapEffect(a, b, function() {
+            // 视频播放结束后，显示大纸条弹窗
+            setTimeout(() => {
+              _openModal(char.name, char.message);
+            }, 100);
+          });
         }, 350);
 
         _flippedCards = [];
@@ -880,7 +1107,7 @@
     ============================= */
 
     function init(data, options) {
-      data = data || characterData;
+      data = data || GAME_CONFIG.characterData;
       _currentData = data;
 
       _cards        = [];
@@ -895,12 +1122,17 @@
       _finishScreen.classList.remove('mg-finish--visible');
 
       _updateStatus();
+
+      /* 音频：启动 BGM */
+      _startBGM();
+
       _render(data);
     }
 
     function destroy() {
       _cards.forEach(card => card.removeEventListener('click', _onCardClick));
       window.removeEventListener('resize', _onResize);
+      _stopBGM();
       _board.innerHTML = '';
       _cards        = [];
       _flippedCards = [];
