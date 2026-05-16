@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>翻牌配对游戏</title>
+  <style>
+    /* =============================
+       全局基础样式
+    ============================= */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      /* 严格锁定视口，绝不产生滚动条 */
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background-color: #f5ede0;
+      background-image:
+        radial-gradient(ellipse at 20% 30%, rgba(255, 220, 170, 0.4) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 70%, rgba(200, 230, 200, 0.3) 0%, transparent 55%);
+      font-family: 'Georgia', '宋体', serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* =============================
+       游戏外层包裹 —— 始终在视口内
+    ============================= */
+    #mg-wrapper {
+      /* 用 dvh 做内高兜底（兼容移动端地址栏），fallback 用 vh */
+      height: 100vh;
+      height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      /* 给边缘留出安全内边距 */
+      padding: 12px 16px;
+    }
+
+    /* =============================
+       游戏容器 mg- 前缀（Memory Game）
+    ============================= */
+    #mg-container {
+      /* 宽度收缩到内容，配合 wrapper 的 flex 居中 */
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      /* gap 用 clamp 自适应屏幕高度 */
+      gap: clamp(6px, 1.2vh, 14px);
+      transition: opacity 0.8s ease;
+    }
+
+    #mg-container.mg-fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* =============================
+       标题区域
+    ============================= */
+    .mg-header {
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .mg-title {
+      font-size: clamp(1.1rem, 3.5vw, 1.8rem);
+      color: #5a3e28;
+      letter-spacing: 0.08em;
+      text-shadow: 1px 1px 0 rgba(255,255,255,0.6);
+      font-weight: normal;
+    }
+
+    .mg-subtitle {
+      font-size: clamp(0.7rem, 1.8vw, 0.85rem);
+      color: #8a6a50;
+      margin-top: 2px;
+    }
+
+    /* =============================
+       计分 / 提示信息栏
+    ============================= */
+    .mg-status-bar {
+      font-size: clamp(0.7rem, 1.8vw, 0.85rem);
+      color: #9a7a60;
+      letter-spacing: 0.04em;
+      flex-shrink: 0;
+    }
+
+    /* =============================
+       卡片方阵
+       宽度收缩到实际内容，配合 margin: auto 严格居中
+    ============================= */
+    .mg-board {
+      display: grid;
+      /* gap 由 JS 写入，这里给默认值 */
+      gap: 10px;
+      /* 收缩到内容宽度，再 margin: auto 居中 */
+      width: fit-content;
+      margin: 0 auto;
+      flex-shrink: 0;
+    }
+
+    /* =============================
+       单张卡片 - 3D 翻牌容器
+       宽高完全由 JS 动态注入
+    ============================= */
+    .mg-card {
+      perspective: 800px;
+      cursor: pointer;
+      user-select: none;
+      /* 保持轻微随机旋转/位移的基础样式 */
+      transition: filter 0.2s ease;
+      /* 关键：让卡片宽高由 grid 列宽决定，aspect-ratio 维持比例 */
+      aspect-ratio: 3 / 4;
+      min-width: 0;   /* 防止 grid 子项撑出列宽 */
+      min-height: 0;
+    }
+
+    .mg-card:hover:not(.mg-card--flipped):not(.mg-card--matched) {
+      filter: brightness(1.04);
+    }
+
+    .mg-card:hover:not(.mg-card--flipped):not(.mg-card--matched) .mg-card-inner {
+      box-shadow: 0 6px 20px rgba(0,0,0,0.24);
+    }
+
+    /* 配对成功后不可点击；visibility 由 JS 在动画结束后写入，不在此处设置 */
+    .mg-card--matched {
+      cursor: default;
+      pointer-events: none;
+    }
+
+    /* 消除动画：淡出 + 轻微上浮 + 缩小 */
+    .mg-card--removing {
+      animation: mg-card-remove 0.55s ease forwards;
+    }
+
+    @keyframes mg-card-remove {
+      0%   { opacity: 1;   transform: var(--mg-base-transform, none) translateY(0)    scale(1);    }
+      30%  { opacity: 0.9; transform: var(--mg-base-transform, none) translateY(-6px) scale(1.05); }
+      100% { opacity: 0;   transform: var(--mg-base-transform, none) translateY(-12px) scale(0.82); }
+    }
+
+    /* 卡片翻转内层 */
+    .mg-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.52s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+      border-radius: 6px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.16), 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .mg-card--flipped .mg-card-inner {
+      transform: rotateY(180deg);
+    }
+
+    /* 卡片正反面公共样式 */
+    .mg-card-front,
+    .mg-card-back {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    /* =============================
+       卡片背面 —— 统一纸条纹理
+    ============================= */
+    .mg-card-back {
+      background-color: #ede0c8;
+      background-image:
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 18px,
+          rgba(180, 155, 120, 0.18) 18px,
+          rgba(180, 155, 120, 0.18) 19px
+        ),
+        linear-gradient(
+          135deg,
+          rgba(255,255,255,0.25) 0%,
+          transparent 45%,
+          rgba(0,0,0,0.03) 100%
+        );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(160, 130, 95, 0.3);
+    }
+
+    /* 背面装饰花纹（内联 SVG） */
+    .mg-card-back::before {
+      content: '';
+      display: block;
+      width: clamp(22px, 35%, 38px);
+      height: clamp(22px, 35%, 38px);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='7' fill='none' stroke='%23c4a882' stroke-width='1.2'/%3E%3Cpath d='M20 4 Q24 12 20 20 Q16 12 20 4Z' fill='%23c4a882' opacity='0.5'/%3E%3Cpath d='M36 20 Q28 24 20 20 Q28 16 36 20Z' fill='%23c4a882' opacity='0.5'/%3E%3Cpath d='M20 36 Q16 28 20 20 Q24 28 20 36Z' fill='%23c4a882' opacity='0.5'/%3E%3Cpath d='M4 20 Q12 16 20 20 Q12 24 4 20Z' fill='%23c4a882' opacity='0.5'/%3E%3Ccircle cx='20' cy='20' r='3' fill='%23c4a882'/%3E%3C/svg%3E");
+      background-size: contain;
+      background-repeat: no-repeat;
+      opacity: 0.65;
+    }
+
+    /* =============================
+       卡片正面 —— 显示人物名字
+    ============================= */
+    .mg-card-front {
+      transform: rotateY(180deg);
+      background-color: #fdf8ef;
+      background-image:
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 20px,
+          rgba(180, 155, 120, 0.12) 20px,
+          rgba(180, 155, 120, 0.12) 21px
+        ),
+        linear-gradient(160deg, rgba(255,255,255,0.4) 0%, transparent 50%);
+      border: 1px solid rgba(160, 130, 95, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+    }
+
+    /* 折角效果 */
+    .mg-card-front::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 0 0 14px 14px;
+      border-color: transparent transparent rgba(180, 155, 120, 0.35) transparent;
+    }
+
+    /* 人物名字 —— 字号由 JS 根据卡片大小动态注入到 CSS 变量 */
+    .mg-card-name {
+      font-size: var(--mg-card-font-size, clamp(0.7rem, 2vw, 1.1rem));
+      color: #4a3220;
+      text-align: center;
+      font-weight: normal;
+      letter-spacing: 0.06em;
+      line-height: 1.3;
+      word-break: break-all;
+    }
+
+    /* =============================
+       弹窗 —— 大纸条（移动端适配）
+    ============================= */
+    .mg-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(80, 55, 35, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.28s ease;
+      /* 移动端内边距保护 */
+      padding: clamp(12px, 4vw, 28px);
+    }
+
+    .mg-modal-overlay.mg-modal--visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .mg-modal {
+      background: #fdf5e4;
+      background-image:
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 26px,
+          rgba(180, 155, 120, 0.2) 26px,
+          rgba(180, 155, 120, 0.2) 27px
+        ),
+        linear-gradient(170deg, rgba(255,255,255,0.5) 0%, transparent 40%);
+      border: 1px solid rgba(180, 145, 95, 0.4);
+      border-radius: 6px;
+      box-shadow:
+        0 10px 40px rgba(0,0,0,0.25),
+        0 2px 6px rgba(0,0,0,0.12),
+        inset 0 1px 0 rgba(255,255,255,0.5);
+      /* 最大宽度 + 确保不超视口 */
+      max-width: min(420px, 92vw);
+      width: 100%;
+      /* 最大高度限制，防止超出屏幕 */
+      max-height: 80vh;
+      max-height: 80dvh;
+      overflow-y: auto;
+      padding: clamp(24px, 5vw, 36px) clamp(18px, 5vw, 32px) clamp(20px, 4vw, 28px);
+      position: relative;
+      transform: scale(0.88) translateY(16px);
+      transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .mg-modal-overlay.mg-modal--visible .mg-modal {
+      transform: scale(1) translateY(0);
+    }
+
+    /* 弹窗折角 */
+    .mg-modal::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 0 0 22px 22px;
+      border-color: transparent transparent rgba(160, 130, 80, 0.4) transparent;
+      pointer-events: none;
+    }
+
+    /* 弹窗顶部装饰线 */
+    .mg-modal::before {
+      content: '';
+      position: absolute;
+      top: 16px;
+      left: 24px;
+      right: 24px;
+      height: 1px;
+      background: rgba(180, 145, 95, 0.3);
+    }
+
+    .mg-modal-char-name {
+      font-size: clamp(1.1rem, 4vw, 1.35rem);
+      color: #5a3e28;
+      margin-bottom: 12px;
+      font-weight: normal;
+      letter-spacing: 0.06em;
+    }
+
+    .mg-modal-char-name::before { content: '✦ '; color: #c49a6c; font-size: 0.85em; }
+    .mg-modal-char-name::after  { content: ' ✦'; color: #c49a6c; font-size: 0.85em; }
+
+    .mg-modal-message {
+      font-size: clamp(0.88rem, 3vw, 1rem);
+      color: #5c4030;
+      line-height: 1.85;
+      letter-spacing: 0.03em;
+    }
+
+    /* 关闭按钮 —— 加大触控区域 */
+    .mg-modal-close {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      color: #a07850;
+      /* 最小 44×44 触控热区 */
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: background 0.2s, color 0.2s;
+      font-family: inherit;
+    }
+
+    .mg-modal-close:hover {
+      background: rgba(160, 120, 70, 0.12);
+      color: #5a3820;
+    }
+
+    /* =============================
+       游戏完成提示
+    ============================= */
+    #mg-finish-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 32px 20px;
+      text-align: center;
+      animation: mg-finish-in 0.75s ease forwards;
+    }
+
+    #mg-finish-screen.mg-finish--visible {
+      display: flex;
+    }
+
+    @keyframes mg-finish-in {
+      from { opacity: 0; transform: translateY(24px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .mg-finish-title {
+      font-size: clamp(1.5rem, 5vw, 2.2rem);
+      color: #5a3e28;
+      letter-spacing: 0.1em;
+      font-weight: normal;
+    }
+
+    .mg-finish-title::before { content: '🎉 '; }
+    .mg-finish-title::after  { content: ' 🎉'; }
+
+    .mg-finish-subtitle {
+      font-size: clamp(0.85rem, 2.5vw, 1rem);
+      color: #8a6a50;
+      line-height: 1.6;
+    }
+
+    .mg-btn-next {
+      margin-top: 4px;
+      padding: 12px 32px;
+      background: #c49a6c;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: clamp(0.88rem, 2.5vw, 1rem);
+      cursor: pointer;
+      font-family: inherit;
+      letter-spacing: 0.06em;
+      box-shadow: 0 3px 12px rgba(160, 120, 70, 0.35);
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      /* 移动端最小触控高度 */
+      min-height: 44px;
+    }
+
+    .mg-btn-next:hover {
+      background: #b08555;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 16px rgba(160, 120, 70, 0.4);
+    }
+
+    .mg-btn-next:active { transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+  <div id="mg-wrapper">
+    <!-- 游戏容器 -->
+    <div id="mg-container">
+      <div class="mg-header">
+        <h1 class="mg-title">纸条配对</h1>
+        <p class="mg-subtitle">找出相同名字的两张纸条</p>
+      </div>
+      <div class="mg-status-bar" id="mg-status">
+        共 <span id="mg-total">0</span> 对，已找到 <span id="mg-found">0</span> 对
+      </div>
+      <div class="mg-board" id="mg-board"></div>
+    </div>
+
+    <!-- 游戏完成界面 -->
+    <div id="mg-finish-screen">
+      <div class="mg-finish-title">全部找到啦</div>
+      <p class="mg-finish-subtitle">所有纸条都已配对成功！</p>
+      <button class="mg-btn-next" id="mg-btn-next">再来一局</button>
+    </div>
+  </div>
+
+  <!-- 弹窗遮罩（fixed，覆盖全屏） -->
+  <div class="mg-modal-overlay" id="mg-modal-overlay" role="dialog" aria-modal="true">
+    <div class="mg-modal" id="mg-modal">
+      <button class="mg-modal-close" id="mg-modal-close" aria-label="关闭">✕</button>
+      <div class="mg-modal-char-name" id="mg-modal-char-name"></div>
+      <p class="mg-modal-message" id="mg-modal-message"></p>
+    </div>
+  </div>
+
+  <script>
+  /**
+   * ============================================================
+   *  人物数据列表 —— 只需修改这里即可替换游戏内容
+   *  每个对象包含：
+   *    name    : 人物名字（卡片正面显示）
+   *    message : 配对成功后弹窗里展示的话
+   * ============================================================
+   */
+  const characterData = [
+    { name: "小明", message: "今天也要加油呀！无论遇到什么困难，都要微笑着面对。" },
+    { name: "小红", message: "别忘记吃饭哦，身体是最重要的。" },
+    { name: "阿哲", message: "慢慢来，比较快。不急不躁，稳稳前行。" },
+    { name: "小鱼", message: "每一天都是新的开始，昨天的烦恼就随风去吧。" },
+    { name: "阿宝", message: "记得多喝热水，天气变化大，多保重！" },
+    { name: "小蝶", message: "你已经很棒啦，不要总是和自己较劲儿。" },
+    { name: "大牛", message: "踏实做事，静待花开。努力的人运气都不会太差。" },
+    { name: "晓晓", message: "今天有没有好好休息？早点睡，明天见！" }
+  ];
+
+
+  /**
+   * ============================================================
+   *  MemoryGame —— 翻牌配对游戏模块
+   *  公开接口：
+   *    MemoryGame.init(data, options)  初始化并启动游戏
+   *    MemoryGame.destroy()            销毁游戏，清空 DOM
+   *    MemoryGame.onFinish(callback)   注册游戏完成回调
+   * ============================================================
+   */
+  const MemoryGame = (function () {
+
+    /* ---------- 内部状态 ---------- */
+    let _cards        = [];
+    let _flippedCards = [];
+    let _matchedCount = 0;
+    let _totalPairs   = 0;
+    let _isLocked     = false;
+    let _waitingModal = false;
+    let _finishCb     = null;
+    let _currentData  = null;
+
+    /* ---------- DOM 引用 ---------- */
+    const _wrapper      = document.getElementById('mg-wrapper');
+    const _board        = document.getElementById('mg-board');
+    const _container    = document.getElementById('mg-container');
+    const _finishScreen = document.getElementById('mg-finish-screen');
+    const _overlay      = document.getElementById('mg-modal-overlay');
+    const _modalName    = document.getElementById('mg-modal-char-name');
+    const _modalMsg     = document.getElementById('mg-modal-message');
+    const _modalClose   = document.getElementById('mg-modal-close');
+    const _statusTotal  = document.getElementById('mg-total');
+    const _statusFound  = document.getElementById('mg-found');
+    const _btnNext      = document.getElementById('mg-btn-next');
+
+    /* =============================
+       工具函数
+    ============================= */
+
+    /** Fisher-Yates 洗牌 */
+    function _shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    /** 随机浮点数 [min, max] */
+    function _rand(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    /**
+     * 根据人物数量与屏幕尺寸计算最优列数
+     *  - 尽量让方阵接近正方形（宽略大于高）
+     *  - 小屏（≤480px）最多 4 列
+     *  - 保证 cols 能整除 total
+     */
+    function _calcColumns(total) {
+      const vw = window.innerWidth;
+      const maxCols = vw <= 480 ? 4 : vw <= 768 ? 6 : 8;
+
+      let best = 2;
+      let bestScore = Infinity;
+
+      for (let cols = 2; cols <= Math.min(total, maxCols); cols++) {
+        if (total % cols !== 0) continue;
+        const rows = total / cols;
+        // 目标宽高比：cols/rows 接近 1.25（横向略宽）
+        const score = Math.abs(cols / rows - 1.25);
+        if (score < bestScore) {
+          bestScore = score;
+          best = cols;
+        }
+      }
+      return best;
+    }
+
+    /**
+     * 核心：计算卡片尺寸，保证整个方阵在当前视口内完整显示
+     *
+     * 思路：
+     *  1. 获取 wrapper 实际可用宽度（减去左右 padding）和可用高度（减去上下 padding）
+     *  2. 再减去 header / status 高度，得到方阵可用高度
+     *  3. 从"宽度方向"和"高度方向"分别算出卡片最大尺寸，取两者较小值
+     */
+    function _calcCardSize(cols, rows) {
+      // wrapper 的 CSS padding（左右各 16px，上下各 12px）
+      const wrapperStyle = getComputedStyle(_wrapper);
+      const padL = parseFloat(wrapperStyle.paddingLeft)  || 16;
+      const padR = parseFloat(wrapperStyle.paddingRight) || 16;
+      const padT = parseFloat(wrapperStyle.paddingTop)   || 12;
+      const padB = parseFloat(wrapperStyle.paddingBottom)|| 12;
+
+      // 可用区域 = 视口尺寸 - wrapper 内边距
+      const availW = window.innerWidth  - padL - padR;
+      const availH = window.innerHeight - padT - padB;
+
+      // 非方阵区域高度：header + status + container gap（上下共两段）
+      const headerH      = _container.querySelector('.mg-header').offsetHeight;
+      const statusH      = _container.querySelector('.mg-status-bar').offsetHeight;
+      const containerGap = parseFloat(getComputedStyle(_container).gap) || 10;
+
+      // 方阵本身可用高度（留 4px 安全余量）
+      const boardAvailH = availH - headerH - statusH - containerGap * 2 - 4;
+
+      // 方阵内的 gap（随可用区域缩放）
+      const gap = Math.max(5, Math.min(12, Math.round(Math.min(availW, availH) * 0.011)));
+
+      // 从宽度推算卡片宽
+      const cardW_byWidth  = (availW - gap * (cols - 1)) / cols;
+
+      // 从高度推算卡片宽（卡片比例 3:4，cardH = cardW * 4/3）
+      const cardH_byHeight = (boardAvailH - gap * (rows - 1)) / rows;
+      const cardW_byHeight = cardH_byHeight * (3 / 4);
+
+      // 取两方向最小值，确保不溢出任何一侧；最小 38px 保证可点击
+      const cardW = Math.max(38, Math.floor(Math.min(cardW_byWidth, cardW_byHeight)));
+      const cardH = Math.round(cardW * 4 / 3);
+
+      // 卡片字号：相对卡片宽度
+      const fontSize = Math.max(11, Math.round(cardW * 0.22));
+
+      return { cardW, cardH, gap, fontSize };
+    }
+
+    /** 更新状态栏计数 */
+    function _updateStatus() {
+      _statusTotal.textContent = _totalPairs;
+      _statusFound.textContent = _matchedCount;
+    }
+
+    /* =============================
+       弹窗控制
+    ============================= */
+
+    function _openModal(name, message) {
+      _modalName.textContent = name;
+      _modalMsg.textContent  = message;
+      _overlay.classList.add('mg-modal--visible');
+      _waitingModal = true;
+    }
+
+    function _closeModal() {
+      _overlay.classList.remove('mg-modal--visible');
+      _waitingModal = false;
+      _isLocked = false;
+
+      if (_matchedCount === _totalPairs) {
+        _triggerFinish();
+      }
+    }
+
+    /* =============================
+       游戏结束
+    ============================= */
+
+    function _triggerFinish() {
+      setTimeout(() => {
+        _container.classList.add('mg-fade-out');
+        setTimeout(() => {
+          _container.style.display = 'none';
+          _finishScreen.classList.add('mg-finish--visible');
+        }, 800);
+      }, 300);
+
+      if (typeof _finishCb === 'function') {
+        _finishCb();
+      }
+    }
+
+    /* =============================
+       卡片翻牌逻辑
+    ============================= */
+
+    function _onCardClick(e) {
+      const card = e.currentTarget;
+      if (_isLocked || _waitingModal) return;
+      if (card.classList.contains('mg-card--flipped')) return;
+      if (card.classList.contains('mg-card--matched')) return;
+      if (_flippedCards.length >= 2) return;
+
+      card.classList.add('mg-card--flipped');
+      _flippedCards.push(card);
+
+      if (_flippedCards.length === 2) {
+        _isLocked = true;
+        _checkMatch();
+      }
+    }
+
+    function _checkMatch() {
+      const [a, b] = _flippedCards;
+      const nameA  = a.dataset.name;
+      const nameB  = b.dataset.name;
+
+      if (nameA === nameB) {
+        _matchedCount++;
+        _updateStatus();
+
+        setTimeout(() => {
+          // 先播放消除动画
+          a.classList.add('mg-card--removing');
+          b.classList.add('mg-card--removing');
+
+          // 动画结束后（0.55s）再标记为 matched（隐藏占位）
+          const ANIM_DURATION = 580; // 略长于动画时长，确保动画完整播放
+          setTimeout(() => {
+            a.classList.add('mg-card--matched');
+            b.classList.add('mg-card--matched');
+            a.classList.remove('mg-card--removing');
+            b.classList.remove('mg-card--removing');
+            // 动画结束后保持不可见
+            a.style.visibility = 'hidden';
+            b.style.visibility = 'hidden';
+          }, ANIM_DURATION);
+
+          const char = _findCharacter(nameA);
+          // 弹窗在动画开始后稍等一下再出现，让用户先看完动画
+          setTimeout(() => {
+            _openModal(char.name, char.message);
+          }, 400);
+        }, 350);
+
+        _flippedCards = [];
+        // _isLocked 保持 true 直到弹窗关闭
+
+      } else {
+        setTimeout(() => {
+          a.classList.remove('mg-card--flipped');
+          b.classList.remove('mg-card--flipped');
+          _flippedCards = [];
+          _isLocked = false;
+        }, 1050);
+      }
+    }
+
+    function _findCharacter(name) {
+      return _currentData.find(c => c.name === name) || { name, message: '' };
+    }
+
+    /* =============================
+       DOM 创建 & 布局计算
+    ============================= */
+
+    function _buildCards(data) {
+      const pairs = [];
+      data.forEach(char => {
+        pairs.push({ name: char.name });
+        pairs.push({ name: char.name });
+      });
+      return _shuffle(pairs);
+    }
+
+    function _createCardElement(cardData) {
+      const card = document.createElement('div');
+      card.className    = 'mg-card';
+      card.dataset.name = cardData.name;
+
+      // 轻微随机旋转与位置偏移（纸条散落感）
+      const rotate  = _rand(-2.8, 2.8).toFixed(2);
+      const offsetX = _rand(-2.5, 2.5).toFixed(2);
+      const offsetY = _rand(-1.8, 1.8).toFixed(2);
+      const baseTransform = `rotate(${rotate}deg) translate(${offsetX}px, ${offsetY}px)`;
+
+      card.style.transform = baseTransform;
+      // 存储到 CSS 变量，供消失动画使用
+      card.style.setProperty('--mg-base-transform', baseTransform);
+
+      const inner = document.createElement('div');
+      inner.className = 'mg-card-inner';
+
+      const back = document.createElement('div');
+      back.className = 'mg-card-back';
+
+      const front = document.createElement('div');
+      front.className = 'mg-card-front';
+
+      const nameEl = document.createElement('span');
+      nameEl.className   = 'mg-card-name';
+      nameEl.textContent = cardData.name;
+
+      front.appendChild(nameEl);
+      inner.appendChild(back);
+      inner.appendChild(front);
+      card.appendChild(inner);
+
+      card.addEventListener('click', _onCardClick);
+      return card;
+    }
+
+    /**
+     * 渲染方阵
+     * 先构建 DOM，再测量可用空间，再注入精确尺寸
+     */
+    function _render(data) {
+      _board.innerHTML = '';
+      _cards = [];
+
+      const total   = data.length * 2;
+      const cols    = _calcColumns(total);
+      const rows    = total / cols;
+      const cardArr = _buildCards(data);
+
+      // 临时设置 grid 列数（宽度未知，先渲染）
+      _board.style.gridTemplateColumns = `repeat(${cols}, auto)`;
+
+      // 创建所有卡片
+      cardArr.forEach(cardData => {
+        const el = _createCardElement(cardData);
+        _board.appendChild(el);
+        _cards.push(el);
+      });
+
+      // 等 DOM 渲染完毕再测量并精确设置尺寸
+      requestAnimationFrame(() => {
+        _applyLayout(cols, rows);
+      });
+    }
+
+    /**
+     * 测量可用空间并将精确的卡片宽高、gap 写入 DOM
+     */
+    function _applyLayout(cols, rows) {
+      const { cardW, cardH, gap, fontSize } = _calcCardSize(cols, rows);
+
+      // 更新 board gap
+      _board.style.gap = `${gap}px`;
+      // 列宽固定为 cardW
+      _board.style.gridTemplateColumns = `repeat(${cols}, ${cardW}px)`;
+
+      // 写入 CSS 变量供卡片名字字号使用
+      document.documentElement.style.setProperty('--mg-card-font-size', `${fontSize}px`);
+
+      // 给每张卡片设置精确宽高
+      _cards.forEach(card => {
+        card.style.width  = `${cardW}px`;
+        card.style.height = `${cardH}px`;
+        // 有了精确宽高后，aspect-ratio 不再需要
+        card.style.aspectRatio = '';
+      });
+    }
+
+    /* =============================
+       窗口 resize 时重新计算布局
+    ============================= */
+    let _resizeTimer = null;
+
+    function _onResize() {
+      clearTimeout(_resizeTimer);
+      _resizeTimer = setTimeout(() => {
+        if (!_currentData || _cards.length === 0) return;
+        const total = _currentData.length * 2;
+        const cols  = _calcColumns(total);
+        const rows  = total / cols;
+        // 重新计算并应用尺寸
+        _board.style.gridTemplateColumns = `repeat(${cols}, auto)`;
+        requestAnimationFrame(() => {
+          _applyLayout(cols, rows);
+        });
+      }, 150);
+    }
+
+    window.addEventListener('resize', _onResize);
+
+    /* =============================
+       公开接口
+    ============================= */
+
+    function init(data, options) {
+      data = data || characterData;
+      _currentData = data;
+
+      _cards        = [];
+      _flippedCards = [];
+      _matchedCount = 0;
+      _totalPairs   = data.length;
+      _isLocked     = false;
+      _waitingModal = false;
+
+      _container.style.display = '';
+      _container.classList.remove('mg-fade-out');
+      _finishScreen.classList.remove('mg-finish--visible');
+
+      _updateStatus();
+      _render(data);
+    }
+
+    function destroy() {
+      _cards.forEach(card => card.removeEventListener('click', _onCardClick));
+      window.removeEventListener('resize', _onResize);
+      _board.innerHTML = '';
+      _cards        = [];
+      _flippedCards = [];
+      _isLocked     = false;
+      _waitingModal = false;
+      _currentData  = null;
+    }
+
+    function onFinish(callback) {
+      _finishCb = callback;
+    }
+
+    /* =============================
+       静态事件绑定
+    ============================= */
+
+    _modalClose.addEventListener('click', _closeModal);
+
+    _overlay.addEventListener('click', function (e) {
+      if (e.target === _overlay) _closeModal();
+    });
+
+    // ESC 键也可关闭弹窗
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && _waitingModal) _closeModal();
+    });
+
+    _btnNext.addEventListener('click', function () {
+      _finishScreen.classList.remove('mg-finish--visible');
+      init();
+    });
+
+    return { init, destroy, onFinish };
+
+  })(); // END MemoryGame IIFE
+
+
+  /* ============================================================
+     启动游戏
+  ============================================================ */
+  MemoryGame.init();
+
+  MemoryGame.onFinish(function () {
+    console.log('[MemoryGame] 游戏完成！可在此切换到下一个小游戏。');
+  });
+
+  </script>
+</body>
+</html>
