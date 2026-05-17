@@ -612,11 +612,11 @@
 
     /* ---------- 音频/视频资源 URL ---------- */
     /** 背景音乐（支持本地相对路径或远程 URL） */
-    bgmUrl: 'http://cogs.pro:8081/upload/file/20260517/20260517151043_41388.txt',
+    bgmUrl: 'https://cdn.jsdelivr.net/gh/LikablePie79015/website/HeadTeacherDay/resources/bgm.mp3',
     /** 匹配成功"打响指"音效 */
-    snapSoundUrl: 'http://cogs.pro:8081/upload/file/20260517/20260517151057_94086.txt',
+    snapSoundUrl: 'https://cdn.jsdelivr.net/gh/LikablePie79015/website/HeadTeacherDay/resources/snap.ogg',
     /** 匹配成功时的视频特效 */
-    matchEffectVideoUrl: 'http://cogs.pro:8081/upload/file/20260517/20260517151109_24072.txt',
+    matchEffectVideoUrl: 'https://cdn.jsdelivr.net/gh/LikablePie79015/website/HeadTeacherDay/resources/snap-effect.mp4',
 
     /* ---------- 音量配置 ---------- */
     /** 正常游戏时背景音乐音量 */
@@ -1397,6 +1397,11 @@
 
     /* 阶段二：点击开始 → 进入游戏 */
     btnStart.addEventListener('click', function () {
+      /* iOS Safari 音频解锁：在手势同步栈中播放静音 base64 WAV */
+      var unlocker = new Audio(
+        'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA='
+      );
+      unlocker.play().catch(function () {});
       startEl.classList.add('mg-screen--hidden');
       setTimeout(function () {
         startEl.style.display = 'none';
