@@ -593,6 +593,16 @@
     let _snapAudio    = null;
     let _bgmVolumeTimer = null;
 
+    /* ---------- 预加载缓存 ---------- */
+    /** 响指音效对象池（预创建多个实例供轮换使用，避免连续播放时卡顿） */
+    let _snapAudioPool  = [];
+    let _snapPoolIndex  = 0;
+    const SNAP_POOL_SIZE = 3;
+
+    /** 视频特效 Blob URL（fetch 预下载后缓存，播放时直接读内存） */
+    let _videoEffectBlobURL = null;
+    let _videoPreloadDone   = false;
+
     /* ---------- DOM 引用 ---------- */
     const _wrapper      = document.getElementById('mg-wrapper');
     const _board        = document.getElementById('mg-board');
@@ -623,6 +633,47 @@
     /** 随机浮点数 [min, max] */
     function _rand(min, max) {
       return Math.random() * (max - min) + min;
+    }
+
+    /* =============================
+       资源预加载
+    ============================= */
+
+    /**
+     * 预加载音效与视频资源，在 init() 中调用。
+     * - 响指音效：预建 Audio 对象池（SNAP_POOL_SIZE 个），preload=auto 立即缓冲
+     * - 视频特效：fetch + createObjectURL，将文件数据写入内存 Blob，后续直接使用
+     * - BGM：为已存在的 _bgmAudio 设置 preload=auto（在 _startBGM 中处理）
+     */
+    function _preloadResources() {
+      /* ---- 响指音效对象池 ---- */
+      if (GAME_CONFIG.snapSoundPath && _snapAudioPool.length === 0) {
+        for (let i = 0; i < SNAP_POOL_SIZE; i++) {
+          const a = new Audio(GAME_CONFIG.snapSoundPath);
+          a.preload = 'auto';
+          a.volume  = GAME_CONFIG.snapSoundVolume;
+          _snapAudioPool.push(a);
+        }
+      }
+
+      /* ---- 视频特效：fetch 预下载 ---- */
+      if (GAME_CONFIG.matchEffectVideoPath && !_videoPreloadDone) {
+        _videoPreloadDone = true; // 防止重复发起请求
+        fetch(GAME_CONFIG.matchEffectVideoPath)
+          .then(function(res) {
+            if (!res.ok) throw new Error('video fetch failed: ' + res.status);
+            return res.blob();
+          })
+          .then(function(blob) {
+            // 释放旧 URL（若有）
+            if (_videoEffectBlobURL) URL.revokeObjectURL(_videoEffectBlobURL);
+            _videoEffectBlobURL = URL.createObjectURL(blob);
+          })
+          .catch(function() {
+            // 预加载失败不阻断游戏，回退到原始路径
+            _videoPreloadDone = false;
+          });
+      }
     }
 
     /* =============================
@@ -657,8 +708,9 @@
         return;
       }
       _bgmAudio = new Audio(GAME_CONFIG.bgmPath);
-      _bgmAudio.loop = true;
-      _bgmAudio.volume = GAME_CONFIG.bgmVolume;
+      _bgmAudio.loop    = true;
+      _bgmAudio.preload = 'auto';
+      _bgmAudio.volume  = GAME_CONFIG.bgmVolume;
       /* 兜底：以防 loop 属性不生效，ended 事件手动重新播放 */
       _bgmAudio.addEventListener('ended', function () {
         _bgmAudio && _bgmAudio.play().catch(() => {});
@@ -704,11 +756,21 @@
      * @param {Function} onComplete - 视频播放完成后的回调（可选）
      */
     function _playSnapEffect(cardA, cardB, onComplete) {
-      /* ---- 音效：每次新建实例，确保可连续触发 ---- */
+      /* ---- 音效：从对象池轮换取出，避免每次重新创建/加载 ---- */
       if (GAME_CONFIG.snapSoundPath) {
-        const sfx = new Audio(GAME_CONFIG.snapSoundPath);
-        sfx.volume = GAME_CONFIG.snapSoundVolume;
-        sfx.play().catch(() => {});
+        if (_snapAudioPool.length > 0) {
+          // 使用预加载池
+          const sfx = _snapAudioPool[_snapPoolIndex % _snapAudioPool.length];
+          _snapPoolIndex++;
+          sfx.currentTime = 0;
+          sfx.volume = GAME_CONFIG.snapSoundVolume;
+          sfx.play().catch(() => {});
+        } else {
+          // 兜底：对象池未就绪时临时创建（通常不会走到这里）
+          const sfx = new Audio(GAME_CONFIG.snapSoundPath);
+          sfx.volume = GAME_CONFIG.snapSoundVolume;
+          sfx.play().catch(() => {});
+        }
       }
 
       /* ---- 视频特效：在每张卡片位置播放 ---- */
@@ -717,6 +779,9 @@
         if (typeof onComplete === 'function') onComplete();
         return;
       }
+
+      // 优先使用预加载 BlobURL，否则回退到原始路径（首次访问时网络尚未加载完）
+      const videoSrc = _videoEffectBlobURL || GAME_CONFIG.matchEffectVideoPath;
 
       let completedCount = 0;
       const totalVideos = 2;
@@ -740,7 +805,7 @@
 
         // 创建视频元素
         const video = document.createElement('video');
-        video.src = GAME_CONFIG.matchEffectVideoPath;
+        video.src = videoSrc;
         video.autoplay = true;
         video.muted = true;
         video.playsInline = true;
@@ -1154,6 +1219,9 @@
       /* 音频：启动 BGM */
       _startBGM();
 
+      /* 资源预加载（仅首次有效，重开一局时已缓存无需再次请求） */
+      _preloadResources();
+
       _render(data);
     }
 
@@ -1167,6 +1235,14 @@
       _isLocked     = false;
       _waitingModal = false;
       _currentData  = null;
+      /* 释放预加载资源 */
+      _snapAudioPool  = [];
+      _snapPoolIndex  = 0;
+      if (_videoEffectBlobURL) {
+        URL.revokeObjectURL(_videoEffectBlobURL);
+        _videoEffectBlobURL = null;
+      }
+      _videoPreloadDone = false;
     }
 
     function onFinish(callback) {
