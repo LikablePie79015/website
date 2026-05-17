@@ -556,6 +556,146 @@
     .mg-btn-start:active {
       transform: translateY(0);
     }
+
+    /* =============================
+       下一关过渡页面
+    ============================= */
+    #mg-next-level-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 3000;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(16px, 4vh, 36px);
+      background-color: #f5ede0;
+      background-image:
+        radial-gradient(ellipse at 20% 30%, rgba(255, 220, 170, 0.4) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 70%, rgba(200, 230, 200, 0.3) 0%, transparent 55%);
+      transition: opacity 0.6s ease;
+    }
+
+    #mg-next-level-screen.mg-screen--visible {
+      display: flex;
+      opacity: 1;
+    }
+
+    #mg-next-level-screen.mg-screen--hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .mg-nextlevel-btn {
+      padding: 14px 44px;
+      background: #c49a6c;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: clamp(1rem, 3vw, 1.2rem);
+      cursor: pointer;
+      font-family: 'Georgia', '宋体', serif;
+      letter-spacing: 0.1em;
+      box-shadow: 0 3px 12px rgba(160, 120, 70, 0.35);
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      min-height: 48px;
+    }
+
+    .mg-nextlevel-btn:hover {
+      background: #b08555;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 16px rgba(160, 120, 70, 0.4);
+    }
+
+    .mg-nextlevel-btn:active {
+      transform: translateY(0) scale(0.97);
+    }
+
+    /* 俏皮文字 */
+    .mg-nextlevel-trick {
+      display: none;
+      font-size: clamp(1.1rem, 3.5vw, 1.6rem);
+      color: #6b4c32;
+      letter-spacing: 0.06em;
+      line-height: 1.7;
+      text-align: center;
+      padding: 0 24px;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .mg-nextlevel-trick.mg-trick--visible {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* =============================
+       幻灯片页面
+    ============================= */
+    #mg-slideshow-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 3000;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: #2a1f16;
+      background-image:
+        radial-gradient(ellipse at 50% 50%, rgba(60, 45, 30, 0.8) 0%, transparent 70%);
+      overflow: hidden;
+      transition: opacity 0.8s ease;
+    }
+
+    #mg-slideshow-screen.mg-screen--visible {
+      display: flex;
+      opacity: 1;
+    }
+
+    #mg-slideshow-screen.mg-screen--hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .mg-slideshow-img-wrap {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+    }
+
+    .mg-slideshow-img-wrap img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 4px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      transform: scale(1.03);
+      transition: opacity 1.2s ease, transform 1.2s ease;
+    }
+
+    .mg-slideshow-img-wrap img.ss-active {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* 幻灯片页码指示 */
+    .mg-slideshow-counter {
+      position: absolute;
+      bottom: clamp(12px, 3vh, 24px);
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: clamp(0.75rem, 2vw, 0.9rem);
+      color: #000;
+      letter-spacing: 0.1em;
+      font-family: 'Georgia', '宋体', serif;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -600,6 +740,20 @@
       <div class="mg-modal-char-name" id="mg-modal-char-name"></div>
       <p class="mg-modal-message" id="mg-modal-message"></p>
     </div>
+  </div>
+
+  <!-- 下一关过渡页面 -->
+  <div id="mg-next-level-screen">
+    <button class="mg-nextlevel-btn" id="mg-btn-next-level">点击进入下一关</button>
+    <div class="mg-nextlevel-trick" id="mg-nextlevel-trick">骗你的，根本没有下一关~</div>
+  </div>
+
+  <!-- 幻灯片页面 -->
+  <div id="mg-slideshow-screen">
+    <div class="mg-slideshow-img-wrap" id="mg-slideshow-wrap">
+      <img id="mg-slideshow-img" src="" alt="幻灯片" />
+    </div>
+    <div class="mg-slideshow-counter" id="mg-slideshow-counter"></div>
   </div>
 
   <script>
@@ -660,7 +814,21 @@
       { name: "吴欣安", message: "您是一个幽默风趣的老师授课非常有方法讲解清晰还有意思，私下里和同学们打成一片，和同学们亦师亦友，并且非常有集体责任感，打篮球也非常帅，没想到你还会拉杆哈哈哈。" },
       { name: "D.L.", message: "老师你的篮球技术夯爆了，老师你的数学夯爆了，老师你夯爆了！！！有您做我们的班主任是我们的荣幸🤟🏻希望以后的日子我们都能开开心心平安顺遂地度过👊🏻老师肋骨快快好吧，我们都很爱您🫶🏻" },
       { name: "小H", message: "爱数学也喜欢周老师！祝老师：多吃饭多睡觉！三分球全投进！" }
-    ]
+    ],
+
+    /* ---------- 幻灯片页面配置 ---------- */
+    /** 幻灯片图片列表（URL 数组，数量不限） */
+    slideshowImages: [
+      './resources/1zipped.jpg',
+      './resources/2zipped.jpg',
+      './resources/3zipped.jpg',
+      './resources/4zipped.jpg',
+      './resources/5zipped.jpg',
+    ],
+    /** 幻灯片页面背景音乐（为空则不播放） */
+    slideshowBgmUrl: './resources/bgm2.mp3',
+    /** 幻灯片切换间隔（毫秒） */
+    slideshowInterval: 5000
   };
 
 
@@ -1372,17 +1540,203 @@
   })(); // END MemoryGame IIFE
 
 
+  /**
+   * ============================================================
+   *  SlideshowPage —— 照片幻灯片独立模块
+   *  与 MemoryGame 完全解耦
+   *
+   *  公开接口：
+   *    SlideshowPage.show()     显示幻灯片并开始播放
+   *    SlideshowPage.destroy()  停止播放、释放资源、隐藏页面
+   * ============================================================
+   */
+  const SlideshowPage = (function () {
+
+    /* ---------- 内部状态 ---------- */
+    let _images      = [];
+    let _currentIndex = 0;
+    let _timer       = null;
+    let _bgmAudio    = null;
+
+    /* ---------- DOM 引用 ---------- */
+    const _screen   = document.getElementById('mg-slideshow-screen');
+    const _wrap     = document.getElementById('mg-slideshow-wrap');
+    const _img      = document.getElementById('mg-slideshow-img');
+    const _counter  = document.getElementById('mg-slideshow-counter');
+
+    /* =============================
+       图片切换
+    ============================= */
+
+    /**
+     * 切换到指定索引的图片（淡入淡出）
+     * @param {number} index - 目标图片索引
+     */
+    function _goTo(index) {
+      if (_images.length === 0) return;
+      _currentIndex = ((index % _images.length) + _images.length) % _images.length;
+
+      /* 移除当前激活状态（触发淡出） */
+      _img.classList.remove('ss-active');
+
+      /* 等淡出完成后换 src，再淡入 */
+      setTimeout(function () {
+        _img.src = _images[_currentIndex];
+        _img.alt = '照片 ' + (_currentIndex + 1);
+        _counter.textContent = (_currentIndex + 1) + ' / ' + _images.length;
+
+        /* 等图片加载完再淡入（若已缓存则立即触发） */
+        if (_img.complete && _img.naturalWidth > 0) {
+          _img.classList.add('ss-active');
+        } else {
+          _img.onload = function () {
+            _img.classList.add('ss-active');
+            _img.onload = null;
+          };
+        }
+      }, 500); // 与 CSS transition 时长配合
+    }
+
+    /**
+     * 前进到下一张
+     */
+    function _next() {
+      _goTo(_currentIndex + 1);
+    }
+
+    /**
+     * 启动自动轮播
+     */
+    function _startAutoPlay() {
+      _stopAutoPlay();
+      var interval = GAME_CONFIG.slideshowInterval || 5000;
+      _timer = setInterval(_next, interval);
+    }
+
+    /**
+     * 停止自动轮播
+     */
+    function _stopAutoPlay() {
+      if (_timer) {
+        clearInterval(_timer);
+        _timer = null;
+      }
+    }
+
+    /* =============================
+       幻灯片背景音乐
+    ============================= */
+
+    function _startBGM() {
+      var url = GAME_CONFIG.slideshowBgmUrl;
+      if (!url) return;
+      _bgmAudio = new Audio(url);
+      _bgmAudio.loop = true;
+      _bgmAudio.volume = 0.5;
+      _bgmAudio.play().catch(function () {});
+      /* ended 兜底 */
+      _bgmAudio.addEventListener('ended', function () {
+        if (_bgmAudio) _bgmAudio.play().catch(function () {});
+      });
+    }
+
+    function _stopBGM() {
+      if (!_bgmAudio) return;
+      _bgmAudio.pause();
+      _bgmAudio.currentTime = 0;
+      _bgmAudio = null;
+    }
+
+    /* =============================
+       公开接口
+    ============================= */
+
+    /**
+     * 显示幻灯片页面并开始播放
+     */
+    function show() {
+      _images = GAME_CONFIG.slideshowImages || [];
+      if (_images.length === 0) {
+        console.warn('[SlideshowPage] 没有配置幻灯片图片（slideshowImages 为空）');
+        return;
+      }
+
+      _currentIndex = 0;
+
+      /* 显示页面 */
+      _screen.style.display = '';
+      /* 强制重绘后再加 visible 类，触发过渡动画 */
+      void _screen.offsetHeight;
+      _screen.classList.add('mg-screen--visible');
+
+      /* 加载第一张图片 */
+      _img.classList.remove('ss-active');
+      _img.src = _images[0];
+      _counter.textContent = '1 / ' + _images.length;
+      if (_img.complete && _img.naturalWidth > 0) {
+        setTimeout(function () {
+          _img.classList.add('ss-active');
+        }, 100);
+      } else {
+        _img.onload = function () {
+          _img.classList.add('ss-active');
+          _img.onload = null;
+        };
+      }
+
+      /* 启动自动轮播（第一张显示后再开始计时） */
+      setTimeout(_startAutoPlay, (GAME_CONFIG.slideshowInterval || 5000));
+
+      /* 播放幻灯片 BGM */
+      _startBGM();
+    }
+
+    /**
+     * 销毁幻灯片：停止播放、释放资源、隐藏页面
+     */
+    function destroy() {
+      _stopAutoPlay();
+      _stopBGM();
+      _img.classList.remove('ss-active');
+      _img.src = '';
+      _screen.classList.remove('mg-screen--visible');
+      setTimeout(function () {
+        _screen.style.display = 'none';
+      }, 800);
+      _images = [];
+      _currentIndex = 0;
+    }
+
+    return { show: show, destroy: destroy };
+
+  })(); // END SlideshowPage IIFE
+
+
   /* ============================================================
-     页面启动流程：Loading → Start → Game
+     页面启动流程：Loading → Start → Game → Next Level → Slideshow
   ============================================================ */
   (function boot() {
-    var loadingEl = document.getElementById('mg-loading-screen');
-    var startEl   = document.getElementById('mg-start-screen');
-    var btnStart  = document.getElementById('mg-btn-start');
+    var loadingEl     = document.getElementById('mg-loading-screen');
+    var startEl       = document.getElementById('mg-start-screen');
+    var btnStart      = document.getElementById('mg-btn-start');
+    var nextLevelEl   = document.getElementById('mg-next-level-screen');
+    var btnNextLevel  = document.getElementById('mg-btn-next-level');
+    var trickEl       = document.getElementById('mg-nextlevel-trick');
 
-    /* 注册游戏完成回调 */
+    /* 阶段三：注册游戏完成回调 —— 接管原有 finish screen */
     MemoryGame.onFinish(function () {
-      console.log('[MemoryGame] 游戏完成！可在此切换到下一个小游戏。');
+      /* 延迟等 _triggerFinish 的淡出动画执行完毕 */
+      setTimeout(function () {
+        /* 隐藏原有 finish screen（"全部找到啦"+"再来一局"） */
+        var finishScreen = document.getElementById('mg-finish-screen');
+        if (finishScreen) {
+          finishScreen.classList.remove('mg-finish--visible');
+        }
+        /* 显示"下一关"过渡页面 */
+        nextLevelEl.style.display = '';
+        void nextLevelEl.offsetHeight;
+        nextLevelEl.classList.add('mg-screen--visible');
+      }, 1200);
     });
 
     /* 阶段一：预加载资源 → 切换到开始界面 */
@@ -1406,6 +1760,33 @@
         startEl.style.display = 'none';
         MemoryGame.init();
       }, 500);
+    });
+
+    /* 阶段四：点击"进入下一关" → 显示俏皮文字 → 进入幻灯片 */
+    btnNextLevel.addEventListener('click', function () {
+      /* 隐藏按钮 */
+      btnNextLevel.style.display = 'none';
+      /* 显示俏皮文字（淡入） */
+      trickEl.style.display = 'block';
+      void trickEl.offsetHeight;
+      trickEl.classList.add('mg-trick--visible');
+
+      /* 等 5 秒后进入幻灯片 */
+      setTimeout(function () {
+        /* 淡出下一关页面 */
+        nextLevelEl.classList.remove('mg-screen--visible');
+        nextLevelEl.classList.add('mg-screen--hidden');
+        setTimeout(function () {
+          nextLevelEl.style.display = 'none';
+          nextLevelEl.classList.remove('mg-screen--hidden');
+          /* 销毁游戏 */
+          MemoryGame.destroy();
+          /* 隐藏 wrapper */
+          document.getElementById('mg-wrapper').style.display = 'none';
+          /* 进入幻灯片 */
+          SlideshowPage.show();
+        }, 600);
+      }, 5000);
     });
   })();
 
