@@ -610,13 +610,13 @@
    */
   const GAME_CONFIG = {
 
-    /* ---------- 音频资源路径 ---------- */
-    /** 背景音乐（放在与网页同目录下） */
-    bgmPath: './resources/bgm.mp3',
+    /* ---------- 音频/视频资源 URL ---------- */
+    /** 背景音乐（支持本地相对路径或远程 URL） */
+    bgmUrl: 'http://cogs.pro:8081/upload/file/20260517/20260517151043_41388.txt',
     /** 匹配成功"打响指"音效 */
-    snapSoundPath: './resources/snap.ogg',
-    /** 匹配成功时的视频特效（放在与网页同目录下） */
-    matchEffectVideoPath: './resources/snap-effect.mp4',
+    snapSoundUrl: 'http://cogs.pro:8081/upload/file/20260517/20260517151057_94086.txt',
+    /** 匹配成功时的视频特效 */
+    matchEffectVideoUrl: 'http://cogs.pro:8081/upload/file/20260517/20260517151109_24072.txt',
 
     /* ---------- 音量配置 ---------- */
     /** 正常游戏时背景音乐音量 */
@@ -658,6 +658,7 @@
     // ]
     characterData: [
       { name: "吴欣安", message: "您是一个幽默风趣的老师授课非常有方法讲解清晰还有意思，私下里和同学们打成一片，和同学们亦师亦友，并且非常有集体责任感，打篮球也非常帅，没想到你还会拉杆哈哈哈。" },
+      { name: "D.L.", message: "老师你的篮球技术夯爆了，老师你的数学夯爆了，老师你夯爆了！！！有您做我们的班主任是我们的荣幸🤟🏻希望以后的日子我们都能开开心心平安顺遂地度过👊🏻老师肋骨快快好吧，我们都很爱您🫶🏻" },
       { name: "小明", message: "今天也要加油呀！无论遇到什么困难，都要微笑着面对。" },
       { name: "小红", message: "别忘记吃饭哦，身体是最重要的。" }
     ]
@@ -681,9 +682,9 @@
      */
     preload: function () {
       var paths = [];
-      if (GAME_CONFIG.bgmPath)            paths.push({ path: GAME_CONFIG.bgmPath,            type: 'audio' });
-      if (GAME_CONFIG.snapSoundPath)      paths.push({ path: GAME_CONFIG.snapSoundPath,      type: 'audio' });
-      if (GAME_CONFIG.matchEffectVideoPath) paths.push({ path: GAME_CONFIG.matchEffectVideoPath, type: 'video' });
+      if (GAME_CONFIG.bgmUrl)            paths.push({ path: GAME_CONFIG.bgmUrl,            type: 'audio', label: 'BGM' });
+      if (GAME_CONFIG.snapSoundUrl)      paths.push({ path: GAME_CONFIG.snapSoundUrl,      type: 'audio', label: 'Snap Sound' });
+      if (GAME_CONFIG.matchEffectVideoUrl) paths.push({ path: GAME_CONFIG.matchEffectVideoUrl, type: 'video', label: 'Match Effect Video' });
 
       if (paths.length === 0) {
         return Promise.resolve();
@@ -707,8 +708,8 @@
      */
     _loadOne: function (item) {
       return new Promise(function (resolve) {
-        // 已缓存的资源直接跳过
         var el;
+
         if (item.type === 'video') {
           el = document.createElement('video');
           el.preload = 'auto';
@@ -721,6 +722,7 @@
             resolve();
           });
           el.addEventListener('error', function () {
+            console.warn('[AssetPreloader] Failed to load resource (' + item.label + '): ' + item.path);
             resolve(); // 失败不阻断
           });
         } else {
@@ -731,6 +733,7 @@
             resolve();
           });
           el.addEventListener('error', function () {
+            console.warn('[AssetPreloader] Failed to load resource (' + item.label + '): ' + item.path);
             resolve(); // 失败不阻断
           });
         }
@@ -823,12 +826,12 @@
 
     /** 开始 / 恢复播放 BGM（处理浏览器自动播放限制） */
     function _startBGM() {
-      if (!GAME_CONFIG.bgmPath) return;
+      if (!GAME_CONFIG.bgmUrl) return;
       if (_bgmAudio) {
         _bgmAudio.play().catch(() => {});
         return;
       }
-      _bgmAudio = new Audio(GAME_CONFIG.bgmPath);
+      _bgmAudio = new Audio(GAME_CONFIG.bgmUrl);
       _bgmAudio.loop = true;
       _bgmAudio.volume = GAME_CONFIG.bgmVolume;
       /* 兜底：以防 loop 属性不生效，ended 事件手动重新播放 */
@@ -877,14 +880,14 @@
      */
     function _playSnapEffect(cardA, cardB, onComplete) {
       /* ---- 音效：每次新建实例，确保可连续触发 ---- */
-      if (GAME_CONFIG.snapSoundPath) {
-        const sfx = new Audio(GAME_CONFIG.snapSoundPath);
+      if (GAME_CONFIG.snapSoundUrl) {
+        const sfx = new Audio(GAME_CONFIG.snapSoundUrl);
         sfx.volume = GAME_CONFIG.snapSoundVolume;
         sfx.play().catch(() => {});
       }
 
       /* ---- 视频特效：在每张卡片位置播放 ---- */
-      if (!GAME_CONFIG.matchEffectVideoPath) {
+      if (!GAME_CONFIG.matchEffectVideoUrl) {
         // 没有视频时，直接调用回调
         if (typeof onComplete === 'function') onComplete();
         return;
@@ -912,7 +915,7 @@
 
         // 创建视频元素
         const video = document.createElement('video');
-        video.src = GAME_CONFIG.matchEffectVideoPath;
+        video.src = GAME_CONFIG.matchEffectVideoUrl;
         video.autoplay = true;
         video.muted = true;
         video.playsInline = true;
