@@ -828,7 +828,7 @@
     /** 幻灯片页面背景音乐（为空则不播放） */
     slideshowBgmUrl: './resources/bgm2.mp3',
     /** 幻灯片切换间隔（毫秒） */
-    slideshowInterval: 5000
+    slideshowInterval: 10000
   };
 
 
@@ -1609,7 +1609,7 @@
      */
     function _startAutoPlay() {
       _stopAutoPlay();
-      var interval = GAME_CONFIG.slideshowInterval || 5000;
+      var interval = GAME_CONFIG.slideshowInterval || 10000;
       _timer = setInterval(_next, interval);
     }
 
@@ -1685,7 +1685,7 @@
       }
 
       /* 启动自动轮播（第一张显示后再开始计时） */
-      setTimeout(_startAutoPlay, (GAME_CONFIG.slideshowInterval || 5000));
+      setTimeout(_startAutoPlay, (GAME_CONFIG.slideshowInterval || 10000));
 
       /* 播放幻灯片 BGM */
       _startBGM();
