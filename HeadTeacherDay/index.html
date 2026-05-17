@@ -471,9 +471,106 @@
       display: block;
       pointer-events: none;
     }
+
+    /* =============================
+       全屏遮罩基类（Loading / Start）
+    ============================= */
+    .mg-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 3000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(12px, 2.5vh, 24px);
+      background-color: #f5ede0;
+      background-image:
+        radial-gradient(ellipse at 20% 30%, rgba(255, 220, 170, 0.4) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 70%, rgba(200, 230, 200, 0.3) 0%, transparent 55%);
+      transition: opacity 0.5s ease;
+    }
+
+    .mg-screen.mg-screen--hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* =============================
+       加载界面（Loading Screen）
+    ============================= */
+    .mg-loading-text {
+      font-size: clamp(1rem, 3.2vw, 1.35rem);
+      color: #8a6a50;
+      font-family: 'Georgia', '宋体', serif;
+      letter-spacing: 0.12em;
+      animation: mg-loading-breath 2s ease-in-out infinite;
+    }
+
+    @keyframes mg-loading-breath {
+      0%, 100% { opacity: 0.45; transform: translateY(0); }
+      50%      { opacity: 1;    transform: translateY(-4px); }
+    }
+
+    /* =============================
+       开始界面（Start Screen）
+    ============================= */
+    .mg-start-title {
+      font-size: clamp(1.6rem, 5.5vw, 2.6rem);
+      color: #5a3e28;
+      letter-spacing: 0.1em;
+      text-shadow: 1px 1px 0 rgba(255,255,255,0.6);
+      font-weight: normal;
+      margin: 0;
+    }
+
+    .mg-start-subtitle {
+      font-size: clamp(0.85rem, 2.5vw, 1.05rem);
+      color: #8a6a50;
+      letter-spacing: 0.06em;
+      margin: 0;
+    }
+
+    .mg-btn-start {
+      margin-top: clamp(16px, 3vh, 32px);
+      padding: 12px 40px;
+      background: #c49a6c;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: clamp(0.95rem, 2.8vw, 1.1rem);
+      cursor: pointer;
+      font-family: 'Georgia', '宋体', serif;
+      letter-spacing: 0.1em;
+      box-shadow: 0 3px 12px rgba(160, 120, 70, 0.35);
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      min-height: 44px;
+    }
+
+    .mg-btn-start:hover {
+      background: #b08555;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 16px rgba(160, 120, 70, 0.4);
+    }
+
+    .mg-btn-start:active {
+      transform: translateY(0);
+    }
   </style>
 </head>
 <body>
+
+  <!-- 加载界面 -->
+  <div id="mg-loading-screen" class="mg-screen">
+    <div class="mg-loading-text">正在准备中…</div>
+  </div>
+
+  <!-- 开始界面 -->
+  <div id="mg-start-screen" class="mg-screen" style="display:none">
+    <h1 class="mg-start-title">纸条配对</h1>
+    <p class="mg-start-subtitle">找出相同名字的两张纸条</p>
+    <button class="mg-btn-start" id="mg-btn-start">开始游戏</button>
+  </div>
 
   <div id="mg-wrapper">
     <!-- 游戏容器 -->
@@ -569,6 +666,81 @@
 
   /**
    * ============================================================
+   *  AssetPreloader —— 资源预加载工具
+   *  在 Loading Screen 阶段调用，确保资源可播放后再进入游戏
+   * ============================================================
+   */
+  const AssetPreloader = {
+
+    /** 默认超时时间（毫秒），防止网络极差时卡死 */
+    _timeout: 8000,
+
+    /**
+     * 预加载所有游戏资源
+     * @returns {Promise} 全部资源就绪（或超时兜底）后 resolve
+     */
+    preload: function () {
+      var paths = [];
+      if (GAME_CONFIG.bgmPath)            paths.push({ path: GAME_CONFIG.bgmPath,            type: 'audio' });
+      if (GAME_CONFIG.snapSoundPath)      paths.push({ path: GAME_CONFIG.snapSoundPath,      type: 'audio' });
+      if (GAME_CONFIG.matchEffectVideoPath) paths.push({ path: GAME_CONFIG.matchEffectVideoPath, type: 'video' });
+
+      if (paths.length === 0) {
+        return Promise.resolve();
+      }
+
+      var tasks = paths.map(function (item) {
+        return AssetPreloader._loadOne(item);
+      });
+
+      // 全部成功或超时后 resolve，不 reject（不阻断游戏）
+      return Promise.race([
+        Promise.all(tasks),
+        new Promise(function (resolve) { setTimeout(resolve, AssetPreloader._timeout); })
+      ]);
+    },
+
+    /**
+     * 加载单个资源
+     * - audio: 等待 canplaythrough 事件
+     * - video: 等待 loadeddata 事件
+     */
+    _loadOne: function (item) {
+      return new Promise(function (resolve) {
+        // 已缓存的资源直接跳过
+        var el;
+        if (item.type === 'video') {
+          el = document.createElement('video');
+          el.preload = 'auto';
+          el.muted = true;
+          el.src = item.path;
+          el.addEventListener('loadeddata', function () {
+            // 释放临时元素
+            el.removeAttribute('src');
+            el.load();
+            resolve();
+          });
+          el.addEventListener('error', function () {
+            resolve(); // 失败不阻断
+          });
+        } else {
+          el = new Audio();
+          el.preload = 'auto';
+          el.src = item.path;
+          el.addEventListener('canplaythrough', function () {
+            resolve();
+          });
+          el.addEventListener('error', function () {
+            resolve(); // 失败不阻断
+          });
+        }
+      });
+    }
+  };
+
+
+  /**
+   * ============================================================
    *  MemoryGame —— 翻牌配对游戏模块
    *  公开接口：
    *    MemoryGame.init(data, options)  初始化并启动游戏
@@ -592,16 +764,6 @@
     let _bgmAudio     = null;
     let _snapAudio    = null;
     let _bgmVolumeTimer = null;
-
-    /* ---------- 预加载缓存 ---------- */
-    /** 响指音效对象池（预创建多个实例供轮换使用，避免连续播放时卡顿） */
-    let _snapAudioPool  = [];
-    let _snapPoolIndex  = 0;
-    const SNAP_POOL_SIZE = 3;
-
-    /** 视频特效 Blob URL（fetch 预下载后缓存，播放时直接读内存） */
-    let _videoEffectBlobURL = null;
-    let _videoPreloadDone   = false;
 
     /* ---------- DOM 引用 ---------- */
     const _wrapper      = document.getElementById('mg-wrapper');
@@ -636,47 +798,6 @@
     }
 
     /* =============================
-       资源预加载
-    ============================= */
-
-    /**
-     * 预加载音效与视频资源，在 init() 中调用。
-     * - 响指音效：预建 Audio 对象池（SNAP_POOL_SIZE 个），preload=auto 立即缓冲
-     * - 视频特效：fetch + createObjectURL，将文件数据写入内存 Blob，后续直接使用
-     * - BGM：为已存在的 _bgmAudio 设置 preload=auto（在 _startBGM 中处理）
-     */
-    function _preloadResources() {
-      /* ---- 响指音效对象池 ---- */
-      if (GAME_CONFIG.snapSoundPath && _snapAudioPool.length === 0) {
-        for (let i = 0; i < SNAP_POOL_SIZE; i++) {
-          const a = new Audio(GAME_CONFIG.snapSoundPath);
-          a.preload = 'auto';
-          a.volume  = GAME_CONFIG.snapSoundVolume;
-          _snapAudioPool.push(a);
-        }
-      }
-
-      /* ---- 视频特效：fetch 预下载 ---- */
-      if (GAME_CONFIG.matchEffectVideoPath && !_videoPreloadDone) {
-        _videoPreloadDone = true; // 防止重复发起请求
-        fetch(GAME_CONFIG.matchEffectVideoPath)
-          .then(function(res) {
-            if (!res.ok) throw new Error('video fetch failed: ' + res.status);
-            return res.blob();
-          })
-          .then(function(blob) {
-            // 释放旧 URL（若有）
-            if (_videoEffectBlobURL) URL.revokeObjectURL(_videoEffectBlobURL);
-            _videoEffectBlobURL = URL.createObjectURL(blob);
-          })
-          .catch(function() {
-            // 预加载失败不阻断游戏，回退到原始路径
-            _videoPreloadDone = false;
-          });
-      }
-    }
-
-    /* =============================
        背景音乐控制
     ============================= */
 
@@ -708,9 +829,8 @@
         return;
       }
       _bgmAudio = new Audio(GAME_CONFIG.bgmPath);
-      _bgmAudio.loop    = true;
-      _bgmAudio.preload = 'auto';
-      _bgmAudio.volume  = GAME_CONFIG.bgmVolume;
+      _bgmAudio.loop = true;
+      _bgmAudio.volume = GAME_CONFIG.bgmVolume;
       /* 兜底：以防 loop 属性不生效，ended 事件手动重新播放 */
       _bgmAudio.addEventListener('ended', function () {
         _bgmAudio && _bgmAudio.play().catch(() => {});
@@ -756,21 +876,11 @@
      * @param {Function} onComplete - 视频播放完成后的回调（可选）
      */
     function _playSnapEffect(cardA, cardB, onComplete) {
-      /* ---- 音效：从对象池轮换取出，避免每次重新创建/加载 ---- */
+      /* ---- 音效：每次新建实例，确保可连续触发 ---- */
       if (GAME_CONFIG.snapSoundPath) {
-        if (_snapAudioPool.length > 0) {
-          // 使用预加载池
-          const sfx = _snapAudioPool[_snapPoolIndex % _snapAudioPool.length];
-          _snapPoolIndex++;
-          sfx.currentTime = 0;
-          sfx.volume = GAME_CONFIG.snapSoundVolume;
-          sfx.play().catch(() => {});
-        } else {
-          // 兜底：对象池未就绪时临时创建（通常不会走到这里）
-          const sfx = new Audio(GAME_CONFIG.snapSoundPath);
-          sfx.volume = GAME_CONFIG.snapSoundVolume;
-          sfx.play().catch(() => {});
-        }
+        const sfx = new Audio(GAME_CONFIG.snapSoundPath);
+        sfx.volume = GAME_CONFIG.snapSoundVolume;
+        sfx.play().catch(() => {});
       }
 
       /* ---- 视频特效：在每张卡片位置播放 ---- */
@@ -779,9 +889,6 @@
         if (typeof onComplete === 'function') onComplete();
         return;
       }
-
-      // 优先使用预加载 BlobURL，否则回退到原始路径（首次访问时网络尚未加载完）
-      const videoSrc = _videoEffectBlobURL || GAME_CONFIG.matchEffectVideoPath;
 
       let completedCount = 0;
       const totalVideos = 2;
@@ -805,7 +912,7 @@
 
         // 创建视频元素
         const video = document.createElement('video');
-        video.src = videoSrc;
+        video.src = GAME_CONFIG.matchEffectVideoPath;
         video.autoplay = true;
         video.muted = true;
         video.playsInline = true;
@@ -1219,9 +1326,6 @@
       /* 音频：启动 BGM */
       _startBGM();
 
-      /* 资源预加载（仅首次有效，重开一局时已缓存无需再次请求） */
-      _preloadResources();
-
       _render(data);
     }
 
@@ -1235,14 +1339,6 @@
       _isLocked     = false;
       _waitingModal = false;
       _currentData  = null;
-      /* 释放预加载资源 */
-      _snapAudioPool  = [];
-      _snapPoolIndex  = 0;
-      if (_videoEffectBlobURL) {
-        URL.revokeObjectURL(_videoEffectBlobURL);
-        _videoEffectBlobURL = null;
-      }
-      _videoPreloadDone = false;
     }
 
     function onFinish(callback) {
@@ -1269,19 +1365,42 @@
       init();
     });
 
-    return { init, destroy, onFinish };
+    return { init, destroy, onFinish, preloadAssets: AssetPreloader.preload };
 
   })(); // END MemoryGame IIFE
 
 
   /* ============================================================
-     启动游戏
+     页面启动流程：Loading → Start → Game
   ============================================================ */
-  MemoryGame.init();
+  (function boot() {
+    var loadingEl = document.getElementById('mg-loading-screen');
+    var startEl   = document.getElementById('mg-start-screen');
+    var btnStart  = document.getElementById('mg-btn-start');
 
-  MemoryGame.onFinish(function () {
-    console.log('[MemoryGame] 游戏完成！可在此切换到下一个小游戏。');
-  });
+    /* 注册游戏完成回调 */
+    MemoryGame.onFinish(function () {
+      console.log('[MemoryGame] 游戏完成！可在此切换到下一个小游戏。');
+    });
+
+    /* 阶段一：预加载资源 → 切换到开始界面 */
+    AssetPreloader.preload().then(function () {
+      loadingEl.classList.add('mg-screen--hidden');
+      setTimeout(function () {
+        loadingEl.style.display = 'none';
+        startEl.style.display = '';
+      }, 500);
+    });
+
+    /* 阶段二：点击开始 → 进入游戏 */
+    btnStart.addEventListener('click', function () {
+      startEl.classList.add('mg-screen--hidden');
+      setTimeout(function () {
+        startEl.style.display = 'none';
+        MemoryGame.init();
+      }, 500);
+    });
+  })();
 
   </script>
 </body>
