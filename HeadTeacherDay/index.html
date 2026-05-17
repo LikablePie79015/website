@@ -1397,14 +1397,6 @@
 
     /* 阶段二：点击开始 → 进入游戏 */
     btnStart.addEventListener('click', function () {
-      /* iOS Safari 要求 play() 在用户手势的同步调用栈中执行。
-         此处在手势上下文中播放一段静音音频，解锁音频播放权限，
-         之后 BGM / 响指音效 / 视频均可正常播放。 */
-      var unlocker = new Audio(
-        'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA='
-      );
-      unlocker.play().catch(function () {});
-
       startEl.classList.add('mg-screen--hidden');
       setTimeout(function () {
         startEl.style.display = 'none';
