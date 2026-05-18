@@ -813,7 +813,9 @@
     characterData: [
       { name: "吴欣安", message: "您是一个幽默风趣的老师授课非常有方法讲解清晰还有意思，私下里和同学们打成一片，和同学们亦师亦友，并且非常有集体责任感，打篮球也非常帅，没想到你还会拉杆哈哈哈。" },
       { name: "D.L.", message: "老师你的篮球技术夯爆了，老师你的数学夯爆了，老师你夯爆了！！！有您做我们的班主任是我们的荣幸🤟🏻希望以后的日子我们都能开开心心平安顺遂地度过👊🏻老师肋骨快快好吧，我们都很爱您🫶🏻" },
-      { name: "小H", message: "爱数学也喜欢周老师！祝老师：多吃饭多睡觉！三分球全投进！" }
+      { name: "小H", message: "爱数学也喜欢周老师！祝老师：多吃饭多睡觉！三分球全投进！" },
+      { name: "丁韬智", message: "周老师，您上课风趣幽默，一些做题方法给了我很大帮助，打球打的非常厉害（特别是底角投篮非常准），对于班级管理也非常认真上心，下赛季湖人总冠军🏆" },
+      { name: "刘万昕", message: "周而复始练绝活，松快之间见真章！" }
     ],
 
     /* ---------- 幻灯片页面配置 ---------- */
@@ -1142,29 +1144,76 @@
 
 
     /**
-     * 根据人物数量与屏幕尺寸计算最优列数
-     *  - 尽量让方阵接近正方形（宽略大于高）
-     *  - 小屏（≤480px）最多 4 列
-     *  - 保证 cols 能整除 total
+     * 根据卡片总数与屏幕实际可用空间，计算令卡片面积最大的列数
+     *
+     * 策略：
+     *  1. 获取方阵可用宽度（boardAvailW）与可用高度（boardAvailH）
+     *  2. 遍历所有合理列数候选值，模拟 _calcCardSize 的推算逻辑
+     *  3. 选出卡片宽度最大的列数（即卡片面积最大，视觉最舒适）
+     *  4. 末行允许不满（不强制 total % cols === 0），grid 自动换行
+     *
+     * 边界约束：
+     *  - 小屏（≤480px 宽）最多 4 列
+     *  - 中屏（≤768px 宽）最多 6 列
+     *  - 大屏最多 min(total, 10) 列
+     *  - 最少 2 列
      */
     function _calcColumns(total) {
       const vw = window.innerWidth;
-      const maxCols = vw <= 480 ? 4 : vw <= 768 ? 6 : 8;
+      const vh = window.innerHeight;
 
-      let best = 2;
-      let bestScore = Infinity;
+      // 列数上限
+      const maxCols = vw <= 480 ? 4 : vw <= 768 ? 6 : Math.min(total, 10);
+      // 列数下限：至少 2 列，且不超过 total
+      const minCols = Math.min(2, total);
 
-      for (let cols = 2; cols <= Math.min(total, maxCols); cols++) {
-        if (total % cols !== 0) continue;
-        const rows = total / cols;
-        // 目标宽高比：cols/rows 接近 1.25（横向略宽）
-        const score = Math.abs(cols / rows - 1.25);
-        if (score < bestScore) {
-          bestScore = score;
-          best = cols;
+      // ---- 估算方阵可用空间 ----
+      // wrapper padding（与 _calcCardSize 保持一致）
+      const wrapperStyle = getComputedStyle(_wrapper);
+      const padL = parseFloat(wrapperStyle.paddingLeft)   || 16;
+      const padR = parseFloat(wrapperStyle.paddingRight)  || 16;
+      const padT = parseFloat(wrapperStyle.paddingTop)    || 12;
+      const padB = parseFloat(wrapperStyle.paddingBottom) || 12;
+      // 宽度需同时受 #mg-container 的 max-width 约束（CSS 中为 900px）
+      const containerMaxW = parseFloat(getComputedStyle(_container).maxWidth) || 900;
+      const rawAvailW = vw - padL - padR;
+      const availW = Math.min(rawAvailW, containerMaxW);
+      const availH = vh - padT - padB;
+
+      // header + status 高度（元素已在 DOM 中）
+      const headerEl = _container.querySelector('.mg-header');
+      const statusEl = _container.querySelector('.mg-status-bar');
+      const headerH  = headerEl ? headerEl.offsetHeight : 40;
+      const statusH  = statusEl ? statusEl.offsetHeight : 20;
+      const containerGap = parseFloat(getComputedStyle(_container).gap) || 10;
+      const boardAvailH = availH - headerH - statusH - containerGap * 2 - 4;
+      const boardAvailW = availW;
+
+      let bestCols = minCols;
+      let bestCardW = 0;
+
+      for (let cols = minCols; cols <= maxCols; cols++) {
+        const rows = Math.ceil(total / cols);
+
+        // 动态 gap（与 _calcCardSize 一致）
+        const gap = Math.max(5, Math.min(12, Math.round(Math.min(boardAvailW, boardAvailH) * 0.011)));
+
+        // 从宽度方向推算卡片宽
+        const cardW_byWidth  = (boardAvailW - gap * (cols - 1)) / cols;
+        // 从高度方向推算（卡片比例 3:4）
+        const cardH_byHeight = (boardAvailH - gap * (rows - 1)) / rows;
+        const cardW_byHeight = cardH_byHeight * (3 / 4);
+
+        // 取两方向最小值
+        const cardW = Math.max(38, Math.floor(Math.min(cardW_byWidth, cardW_byHeight)));
+
+        if (cardW > bestCardW) {
+          bestCardW = cardW;
+          bestCols  = cols;
         }
       }
-      return best;
+
+      return bestCols;
     }
 
     /**
@@ -1183,8 +1232,11 @@
       const padT = parseFloat(wrapperStyle.paddingTop)   || 12;
       const padB = parseFloat(wrapperStyle.paddingBottom)|| 12;
 
-      // 可用区域 = 视口尺寸 - wrapper 内边距
-      const availW = window.innerWidth  - padL - padR;
+      // 可用区域 = min(视口宽度, container max-width) - wrapper 内边距
+      // 注意：必须受 #mg-container 的 max-width 约束，否则宽屏下卡片会溢出
+      const containerMaxW = parseFloat(getComputedStyle(_container).maxWidth) || 900;
+      const rawAvailW = window.innerWidth - padL - padR;
+      const availW = Math.min(rawAvailW, containerMaxW);
       const availH = window.innerHeight - padT - padB;
 
       // 非方阵区域高度：header + status + container gap（上下共两段）
@@ -1399,7 +1451,7 @@
 
       const total   = data.length * 2;
       const cols    = _calcColumns(total);
-      const rows    = total / cols;
+      const rows    = Math.ceil(total / cols);
       const cardArr = _buildCards(data);
 
       // 临时设置 grid 列数（宽度未知，先渲染）
@@ -1452,7 +1504,7 @@
         if (!_currentData || _cards.length === 0) return;
         const total = _currentData.length * 2;
         const cols  = _calcColumns(total);
-        const rows  = total / cols;
+        const rows  = Math.ceil(total / cols);
         // 重新计算并应用尺寸
         _board.style.gridTemplateColumns = `repeat(${cols}, auto)`;
         requestAnimationFrame(() => {
