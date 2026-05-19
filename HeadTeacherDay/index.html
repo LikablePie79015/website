@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>翻牌配对游戏</title>
+  <title>5.20 班主任节主题活动</title>
   <style>
     /* =============================
        全局基础样式
@@ -680,16 +680,535 @@
       font-family: 'Georgia', '宋体', serif;
       pointer-events: none;
     }
+
+    /* =============================
+       活动页面通用样式
+    ============================= */
+    .activity-page {
+      position: fixed;
+      inset: 0;
+      z-index: 3000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(12px, 2.5vh, 24px);
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      pointer-events: none;
+    }
+
+    .activity-page.ap--visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .activity-page.ap--exiting {
+      opacity: 0;
+      transform: translateY(-12px);
+      pointer-events: none;
+    }
+
+    /* 活动页面标题 */
+    .ap-title {
+      font-size: clamp(1.6rem, 5.5vw, 2.8rem);
+      color: #5a3e28;
+      letter-spacing: 0.1em;
+      text-shadow: 1px 1px 0 rgba(255,255,255,0.6);
+      font-weight: normal;
+      text-align: center;
+      padding: 0 16px;
+      z-index: 2;
+    }
+
+    /* 活动页面副标题 */
+    .ap-subtitle {
+      font-size: clamp(0.8rem, 2.5vw, 1.1rem);
+      color: #7a5a40;
+      letter-spacing: 0.04em;
+      text-align: center;
+      line-height: 1.8;
+      padding: 0 clamp(16px, 4vw, 40px);
+      max-width: 640px;
+      z-index: 2;
+    }
+
+    /* 活动页面按钮（复用 mg-btn-start 风格） */
+    .ap-btn {
+      margin-top: clamp(8px, 2vh, 20px);
+      padding: 12px clamp(24px, 5vw, 48px);
+      background: #c49a6c;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: clamp(0.9rem, 2.8vw, 1.1rem);
+      cursor: pointer;
+      font-family: 'Georgia', '宋体', serif;
+      letter-spacing: 0.08em;
+      box-shadow: 0 3px 12px rgba(160, 120, 70, 0.35);
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      min-height: 44px;
+      z-index: 2;
+    }
+
+    .ap-btn:hover {
+      background: #b08555;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 16px rgba(160, 120, 70, 0.4);
+    }
+
+    .ap-btn:active {
+      transform: translateY(0) scale(0.97);
+    }
+
+    /* =============================
+       首页装饰（IntroPage）
+    ============================= */
+    .ap-intro {
+      background-color: #f5ede0;
+      background-image:
+        radial-gradient(ellipse at 20% 30%, rgba(255, 220, 170, 0.5) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 70%, rgba(200, 230, 200, 0.4) 0%, transparent 55%),
+        radial-gradient(ellipse at 50% 50%, rgba(255, 200, 200, 0.2) 0%, transparent 50%);
+    }
+
+    /* 彩带装饰 */
+    .intro-ribbon {
+      position: absolute;
+      width: clamp(120px, 40vw, 300px);
+      height: clamp(8px, 1.5vw, 14px);
+      border-radius: 4px;
+      opacity: 0.6;
+      z-index: 1;
+    }
+
+    .intro-ribbon--1 {
+      top: 8%;
+      left: -5%;
+      background: linear-gradient(90deg, #f4a6a0, #f7c59f);
+      transform: rotate(-8deg);
+      animation: intro-ribbon-float 6s ease-in-out infinite;
+    }
+
+    .intro-ribbon--2 {
+      top: 15%;
+      right: -8%;
+      background: linear-gradient(90deg, #a8d8ea, #c4e0c0);
+      transform: rotate(5deg);
+      animation: intro-ribbon-float 7s ease-in-out 1s infinite;
+    }
+
+    .intro-ribbon--3 {
+      bottom: 12%;
+      left: 10%;
+      background: linear-gradient(90deg, #f7d794, #f5cd79);
+      transform: rotate(4deg);
+      animation: intro-ribbon-float 5.5s ease-in-out 0.5s infinite;
+    }
+
+    .intro-ribbon--4 {
+      bottom: 6%;
+      right: -3%;
+      background: linear-gradient(90deg, #d4a5e5, #c4a5e0);
+      transform: rotate(-6deg);
+      animation: intro-ribbon-float 6.5s ease-in-out 2s infinite;
+    }
+
+    @keyframes intro-ribbon-float {
+      0%, 100% { transform: rotate(-8deg) translateY(0); }
+      50% { transform: rotate(-8deg) translateY(-8px); }
+    }
+
+    /* 星星装饰 */
+    .intro-star {
+      position: absolute;
+      z-index: 1;
+      animation: intro-star-twinkle 2s ease-in-out infinite;
+    }
+
+    .intro-star--1 { top: 18%; left: 12%; font-size: clamp(14px, 3vw, 28px); color: #f5cd79; animation-delay: 0s; }
+    .intro-star--2 { top: 25%; right: 15%; font-size: clamp(10px, 2vw, 20px); color: #f4a6a0; animation-delay: 0.7s; }
+    .intro-star--3 { bottom: 25%; left: 8%; font-size: clamp(12px, 2.5vw, 24px); color: #a8d8ea; animation-delay: 1.3s; }
+    .intro-star--4 { bottom: 20%; right: 10%; font-size: clamp(16px, 3.5vw, 30px); color: #c4e0c0; animation-delay: 0.4s; }
+    .intro-star--5 { top: 10%; left: 45%; font-size: clamp(8px, 1.8vw, 16px); color: #d4a5e5; animation-delay: 1s; }
+    .intro-star--6 { bottom: 35%; right: 25%; font-size: clamp(10px, 2vw, 18px); color: #f7d794; animation-delay: 1.6s; }
+
+    @keyframes intro-star-twinkle {
+      0%, 100% { opacity: 0.5; transform: scale(1) rotate(0deg); }
+      50% { opacity: 1; transform: scale(1.2) rotate(15deg); }
+    }
+
+    /* 纸条装饰 */
+    .intro-note {
+      position: absolute;
+      background: #fdf5e4;
+      border: 1px solid rgba(180, 155, 120, 0.35);
+      border-radius: 4px;
+      padding: clamp(6px, 1.5vw, 12px) clamp(10px, 2vw, 18px);
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.08);
+      z-index: 1;
+      font-size: clamp(0.65rem, 1.5vw, 0.85rem);
+      color: #8a6a50;
+      line-height: 1.4;
+    }
+
+    .intro-note::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 0 0 12px 12px;
+      border-color: transparent transparent rgba(180, 155, 120, 0.3) transparent;
+    }
+
+    .intro-note--1 {
+      top: 30%;
+      left: 4%;
+      transform: rotate(-6deg);
+    }
+
+    .intro-note--2 {
+      bottom: 28%;
+      right: 4%;
+      transform: rotate(5deg);
+    }
+
+    /* 首页大标题特殊样式 */
+    .ap-intro .ap-title {
+      font-size: clamp(1.8rem, 6vw, 3.2rem);
+      position: relative;
+    }
+
+    .ap-intro .ap-title::before {
+      content: '';
+      display: block;
+      width: clamp(60px, 15vw, 120px);
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #c49a6c, transparent);
+      margin: 0 auto 12px;
+      border-radius: 2px;
+    }
+
+    .ap-intro .ap-title::after {
+      content: '';
+      display: block;
+      width: clamp(60px, 15vw, 120px);
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #c49a6c, transparent);
+      margin: 12px auto 0;
+      border-radius: 2px;
+    }
+
+    /* =============================
+       视频页面（VideoPage）
+    ============================= */
+    .ap-video {
+      background-color: #f5ede0;
+      background-image:
+        radial-gradient(ellipse at 30% 40%, rgba(255, 220, 170, 0.5) 0%, transparent 55%),
+        radial-gradient(ellipse at 70% 60%, rgba(220, 200, 240, 0.3) 0%, transparent 50%);
+    }
+
+    /* 视频页播放图标装饰 */
+    .video-play-icon {
+      width: clamp(60px, 12vw, 100px);
+      height: clamp(60px, 12vw, 100px);
+      border-radius: 50%;
+      background: rgba(196, 154, 108, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+    }
+
+    .video-play-icon::after {
+      content: '';
+      display: block;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: clamp(12px, 2.5vw, 20px) 0 clamp(12px, 2.5vw, 20px) clamp(18px, 3.5vw, 30px);
+      border-color: transparent transparent transparent rgba(196, 154, 108, 0.5);
+      margin-left: 6px;
+    }
+
+    /* =============================
+       击鼓传花页面（DrumGamePage）
+    ============================= */
+    .ap-drum {
+      background-color: #fdf0e0;
+      background-image:
+        radial-gradient(ellipse at 50% 30%, rgba(255, 200, 150, 0.5) 0%, transparent 60%),
+        radial-gradient(ellipse at 20% 80%, rgba(255, 150, 150, 0.25) 0%, transparent 45%),
+        radial-gradient(ellipse at 80% 80%, rgba(255, 200, 100, 0.25) 0%, transparent 45%);
+    }
+
+    /* 鼓 SVG 装饰 */
+    .drum-deco {
+      position: absolute;
+      z-index: 1;
+      opacity: 0.25;
+      pointer-events: none;
+    }
+
+    .drum-deco--1 {
+      width: clamp(80px, 18vw, 180px);
+      bottom: 8%;
+      left: 5%;
+    }
+
+    .drum-deco--2 {
+      width: clamp(60px, 14vw, 140px);
+      top: 10%;
+      right: 5%;
+      transform: scaleX(-1);
+    }
+
+    /* 彩纸屑装饰 */
+    .confetti {
+      position: absolute;
+      width: clamp(6px, 1.2vw, 10px);
+      height: clamp(6px, 1.2vw, 10px);
+      border-radius: 2px;
+      z-index: 1;
+      animation: confetti-fall linear infinite;
+    }
+
+    .confetti--1 { background: #f4a6a0; left: 10%; top: -5%; animation-duration: 8s; animation-delay: 0s; }
+    .confetti--2 { background: #f7d794; left: 25%; top: -5%; animation-duration: 10s; animation-delay: 1.5s; }
+    .confetti--3 { background: #a8d8ea; left: 40%; top: -5%; animation-duration: 9s; animation-delay: 0.8s; }
+    .confetti--4 { background: #c4e0c0; left: 60%; top: -5%; animation-duration: 7.5s; animation-delay: 2s; }
+    .confetti--5 { background: #d4a5e5; left: 75%; top: -5%; animation-duration: 11s; animation-delay: 0.5s; }
+    .confetti--6 { background: #f5cd79; left: 90%; top: -5%; animation-duration: 8.5s; animation-delay: 3s; }
+
+    @keyframes confetti-fall {
+      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(110vh) rotate(720deg); opacity: 0.3; }
+    }
+
+    /* 音符装饰 */
+    .music-note {
+      position: absolute;
+      z-index: 1;
+      opacity: 0.35;
+      font-size: clamp(16px, 3vw, 28px);
+      animation: note-float 4s ease-in-out infinite;
+    }
+
+    .music-note--1 { top: 15%; left: 15%; animation-delay: 0s; color: #e8a87c; }
+    .music-note--2 { top: 22%; right: 20%; animation-delay: 1.5s; color: #d4a5e5; }
+    .music-note--3 { bottom: 18%; right: 12%; animation-delay: 0.8s; color: #a8d8ea; }
+    .music-note--4 { bottom: 25%; left: 20%; animation-delay: 2s; color: #f4a6a0; }
+
+    @keyframes note-float {
+      0%, 100% { transform: translateY(0) rotate(-5deg); }
+      50% { transform: translateY(-10px) rotate(5deg); }
+    }
+
+    /* =============================
+       猜猜我是谁页面（GuessWhoPage）
+    ============================= */
+    .ap-guess {
+      background-color: #2d4a3e;
+      background-image:
+        radial-gradient(ellipse at 50% 50%, rgba(60, 90, 70, 0.6) 0%, transparent 70%);
+    }
+
+    .ap-guess .ap-title {
+      color: #f0e8d8;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+    }
+
+    .ap-guess .ap-subtitle {
+      color: #c8d8c0;
+    }
+
+    .ap-guess .ap-btn {
+      background: #4a8c6a;
+      box-shadow: 0 3px 12px rgba(60, 120, 80, 0.35);
+    }
+
+    .ap-guess .ap-btn:hover {
+      background: #3d7a5c;
+      box-shadow: 0 5px 16px rgba(60, 120, 80, 0.4);
+    }
+
+    /* 黑板边框 */
+    .blackboard-frame {
+      position: absolute;
+      inset: clamp(8px, 2vw, 24px);
+      border: clamp(4px, 1vw, 10px) solid #8b6f47;
+      border-radius: 4px;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* 黑板纹理 */
+    .blackboard-frame::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(0deg, transparent, transparent 4px, rgba(255,255,255,0.02) 4px, rgba(255,255,255,0.02) 5px);
+      pointer-events: none;
+    }
+
+    /* 粉笔涂鸦 */
+    .chalk-doodle {
+      position: absolute;
+      z-index: 1;
+      opacity: 0.3;
+      color: #f0e8d8;
+      font-family: 'Courier New', monospace;
+      font-size: clamp(14px, 2.5vw, 22px);
+      transform: rotate(-5deg);
+    }
+
+    .chalk-doodle--1 { top: 12%; left: 8%; transform: rotate(-8deg); }
+    .chalk-doodle--2 { top: 8%; right: 8%; transform: rotate(4deg); }
+    .chalk-doodle--3 { bottom: 12%; left: 12%; transform: rotate(-3deg); }
+    .chalk-doodle--4 { bottom: 8%; right: 10%; transform: rotate(6deg); }
+
+    /* =============================
+       闭眼过绳页面（RopeGamePage）
+    ============================= */
+    .ap-rope {
+      background-color: #e8f0e0;
+      background-image:
+        radial-gradient(ellipse at 30% 40%, rgba(200, 220, 180, 0.6) 0%, transparent 55%),
+        radial-gradient(ellipse at 70% 60%, rgba(180, 210, 160, 0.4) 0%, transparent 50%);
+    }
+
+    /* 绳索装饰 */
+    .rope-deco {
+      position: absolute;
+      z-index: 1;
+      opacity: 0.3;
+    }
+
+    .rope-deco svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .rope-deco--1 {
+      width: clamp(150px, 35vw, 350px);
+      height: clamp(30px, 5vh, 60px);
+      top: 10%;
+      left: -2%;
+      animation: rope-swing 5s ease-in-out infinite;
+    }
+
+    .rope-deco--2 {
+      width: clamp(120px, 30vw, 300px);
+      height: clamp(25px, 4vh, 50px);
+      bottom: 12%;
+      right: -3%;
+      animation: rope-swing 6s ease-in-out 1s infinite;
+    }
+
+    .rope-deco--3 {
+      width: clamp(100px, 25vw, 250px);
+      height: clamp(20px, 3.5vh, 45px);
+      top: 55%;
+      left: 5%;
+      animation: rope-swing 7s ease-in-out 2s infinite;
+    }
+
+    @keyframes rope-swing {
+      0%, 100% { transform: rotate(-3deg); }
+      50% { transform: rotate(3deg); }
+    }
+
+    /* =============================
+       不要做挑战页面（DontDoChallengePage）
+    ============================= */
+    .ap-dontdo {
+      background-color: #fff5e6;
+      background-image:
+        radial-gradient(ellipse at 30% 30%, rgba(255, 200, 150, 0.4) 0%, transparent 55%),
+        radial-gradient(ellipse at 70% 70%, rgba(255, 150, 150, 0.3) 0%, transparent 50%);
+    }
+
+    /* 搞笑表情装饰 */
+    .funny-face {
+      position: absolute;
+      z-index: 1;
+      font-size: clamp(24px, 5vw, 48px);
+      opacity: 0.3;
+      animation: funny-bounce 3s ease-in-out infinite;
+    }
+
+    .funny-face--1 { top: 8%; left: 8%; animation-delay: 0s; }
+    .funny-face--2 { top: 12%; right: 10%; animation-delay: 0.8s; font-size: clamp(20px, 4vw, 40px); }
+    .funny-face--3 { bottom: 15%; left: 12%; animation-delay: 1.5s; }
+    .funny-face--4 { bottom: 10%; right: 8%; animation-delay: 0.5s; font-size: clamp(28px, 5.5vw, 52px); }
+
+    @keyframes funny-bounce {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-8px) scale(1.1); }
+    }
+
+    /* 闪烁舞台灯光效果 */
+    .stage-light {
+      position: absolute;
+      border-radius: 50%;
+      z-index: 0;
+      pointer-events: none;
+      animation: stage-pulse 4s ease-in-out infinite;
+    }
+
+    .stage-light--1 {
+      width: clamp(200px, 40vw, 400px);
+      height: clamp(200px, 40vw, 400px);
+      top: -15%;
+      left: -10%;
+      background: radial-gradient(circle, rgba(255, 200, 100, 0.15) 0%, transparent 70%);
+      animation-delay: 0s;
+    }
+
+    .stage-light--2 {
+      width: clamp(180px, 35vw, 350px);
+      height: clamp(180px, 35vw, 350px);
+      bottom: -10%;
+      right: -8%;
+      background: radial-gradient(circle, rgba(200, 150, 255, 0.12) 0%, transparent 70%);
+      animation-delay: 2s;
+    }
+
+    @keyframes stage-pulse {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.08); }
+    }
+
+    /* =============================
+       小屏适配：隐藏/缩小装饰元素
+    ============================= */
+    @media (max-height: 400px) {
+      .intro-ribbon, .intro-star, .intro-note { display: none; }
+      .confetti, .music-note, .chalk-doodle { display: none; }
+      .rope-deco, .funny-face { display: none; }
+      .stage-light { display: none; }
+      .drum-deco { display: none; }
+      .blackboard-frame { display: none; }
+      .activity-page { gap: 8px; }
+    }
+
+    @media (max-width: 360px) {
+      .intro-ribbon, .intro-star, .intro-note { display: none; }
+      .confetti, .music-note, .chalk-doodle { display: none; }
+      .rope-deco, .funny-face { display: none; }
+      .drum-deco { display: none; }
+    }
   </style>
 </head>
 <body>
-
-  <!-- 开始界面 -->
-  <div id="mg-start-screen" class="mg-screen">
-    <h1 class="mg-start-title">纸条配对</h1>
-    <p class="mg-start-subtitle">找出相同名字的两张纸条</p>
-    <button class="mg-btn-start" id="mg-btn-start">开始游戏</button>
-  </div>
 
   <div id="mg-wrapper">
     <!-- 游戏容器 -->
@@ -743,7 +1262,7 @@
    */
   const GAME_CONFIG = {
 
-    /* ---------- 音频/视频资源 URL ---------- */
+    /* ---------- 第七页（翻牌配对）音频资源 ---------- */
     /** 背景音乐（支持本地相对路径或远程 URL） */
     bgmUrl: './resources/bgm.mp3',
     /** 匹配成功"打响指"音效 */
@@ -791,16 +1310,17 @@
     // ]
     characterData: [
       { name: "吴欣安", message: "您是一个幽默风趣的老师授课非常有方法讲解清晰还有意思，私下里和同学们打成一片，和同学们亦师亦友，并且非常有集体责任感，打篮球也非常帅，没想到你还会拉杆哈哈哈。" },
-      { name: "D.L.", message: "老师你的篮球技术夯爆了，老师你的数学夯爆了，老师你夯爆了！！！有您做我们的班主任是我们的荣幸🤟🏻希望以后的日子我们都能开开心心平安顺遂地度过👊🏻老师肋骨快快好吧，我们都很爱您🫶🏻" },
+      { name: "D.L.", message: "老师你的篮球技术夯爆了，老师你的数学夯爆了，老师你夯爆了！！！有您做我们的班主任是我们的荣幸🤟希望以后的日子我们都能开开心心平安顺遂地度过👊老师肋骨快快好吧，我们都很爱您🫶" },
       { name: "小H", message: "爱数学也喜欢周老师！祝老师：多吃饭多睡觉！三分球全投进！" },
       { name: "丁韬智", message: "周老师，您上课风趣幽默，一些做题方法给了我很大帮助，打球打的非常厉害（特别是底角投篮非常准），对于班级管理也非常认真上心，下赛季湖人总冠军🏆" },
       { name: "刘万昕", message: "周而复始练绝活，\n松快之间见真章！" },
       { name: "海珀波利亚", message: "数理世界集一堂\n师范葳蕤振翮翔\n行舟携笔奋楫襄\n松雪梅霁秉心昂\n\n祝班主任星途璀璨" },
       { name: "路小雨", message: "周松天下第一！" },
-      { name: "雷凯博", message: "帅气逼人\n智勇双全\n善解人意" }
+      { name: "雷凯博", message: "帅气逼人\n智勇双全\n善解人意" },
+      { name: "世上第一小组", message: "高一十一智者周，\n自是天下第一松！" }
     ],
 
-    /* ---------- 幻灯片页面配置 ---------- */
+    /* ---------- 第八页（幻灯片）配置 ---------- */
     /** 幻灯片图片列表（URL 数组，数量不限） */
     slideshowImages: [
       './resources/1zipped.jpg',
@@ -812,7 +1332,16 @@
     /** 幻灯片页面背景音乐（为空则不播放） */
     slideshowBgmUrl: './resources/bgm2.mp3',
     /** 幻灯片切换间隔（毫秒） */
-    slideshowInterval: 10000
+    slideshowInterval: 10000,
+
+    /* ---------- 第三~六页活动页面 BGM ---------- */
+    /** 替换为实际 mp3 文件路径即可，为空字符串 '' 则该页不播放 BGM */
+    activityBgm: {
+      drumGame: './resources/drum-game-bgm.mp3',       // 第三页 - 击鼓传花 BGM
+      guessWho: './resources/guess-who-bgm.mp3',        // 第四页 - 猜猜我是谁 BGM
+      ropeGame: './resources/rope-game-bgm.mp3',        // 第五页 - 闭眼过绳 BGM
+      dontDoChallenge: './resources/dont-do-bgm.mp3'    // 第六页 - 不要做挑战 BGM
+    }
   };
 
 
@@ -1669,72 +2198,704 @@
   })(); // END SlideshowPage IIFE
 
 
-  /* ============================================================
-     页面启动流程：Start → Game → Next Level → Slideshow
-  ============================================================ */
-  (function boot() {
-    var startEl       = document.getElementById('mg-start-screen');
-    var btnStart      = document.getElementById('mg-btn-start');
-    var nextLevelEl   = document.getElementById('mg-next-level-screen');
-    var btnNextLevel  = document.getElementById('mg-btn-next-level');
-    var trickEl       = document.getElementById('mg-nextlevel-trick');
+  /**
+   * ============================================================
+   *  ActivityPageManager —— 多页面活动切换管理器
+   *
+   *  职责：按顺序管理 8 个活动页面的注册、切换和生命周期
+   *  接口：
+   *    ActivityPageManager.register(name, module)  注册页面
+   *    ActivityPageManager.start()                  从第一页开始
+   *    ActivityPageManager.next()                   进入下一页
+   * ============================================================
+   */
+  var ActivityPageManager = (function () {
+    var _pages = [];        // [{name, module: {show(onNext), destroy()}}]
+    var _currentIndex = -1;
+    var _onNextCallback = null; // 当前页面传来的 onNext
 
-    /* 阶段一：注册游戏完成回调 —— 接管原有 finish screen */
-    MemoryGame.onFinish(function () {
-      /* 延迟等 _triggerFinish 的淡出动画执行完毕 */
-      setTimeout(function () {
-        /* 隐藏原有 finish screen（"全部找到啦"+"再来一局"） */
-        var finishScreen = document.getElementById('mg-finish-screen');
-        if (finishScreen) {
-          finishScreen.classList.remove('mg-finish--visible');
-        }
-        /* 显示"下一关"过渡页面 */
-        nextLevelEl.style.display = '';
-        void nextLevelEl.offsetHeight;
-        nextLevelEl.classList.add('mg-screen--visible');
-      }, 1200);
-    });
+    /** 注册一个页面模块 */
+    function register(name, module) {
+      _pages.push({ name: name, module: module });
+    }
 
-    /* 阶段二：点击开始 → 进入游戏 */
-    btnStart.addEventListener('click', function () {
-      /* iOS Safari 音频解锁：在手势同步栈中播放静音 base64 WAV */
+    /** 从第一页开始 */
+    function start() {
+      goTo(0);
+    }
+
+    /** 进入下一页 */
+    function next() {
+      if (_currentIndex < _pages.length - 1) {
+        goTo(_currentIndex + 1);
+      }
+    }
+
+    /**
+     * 跳转到指定页面索引
+     * 流程：当前页 destroy → 旧页淡出 → 新页 show → 新页淡入
+     */
+    function goTo(index) {
+      if (index < 0 || index >= _pages.length) return;
+
+      var oldPage = _currentIndex >= 0 ? _pages[_currentIndex] : null;
+      var newPage = _pages[index];
+
+      // 新页的 onNext 回调 → 调用 next()
+      _onNextCallback = function () {
+        ActivityPageManager.next();
+      };
+
+      if (oldPage) {
+        // 先销毁旧页面逻辑（停 BGM、清计时器等）
+        oldPage.module.destroy();
+
+        // 等旧页面退出动画结束后再进入新页面
+        setTimeout(function () {
+          _currentIndex = index;
+          newPage.module.show(_onNextCallback);
+        }, 100);
+      } else {
+        // 第一页，直接显示
+        _currentIndex = index;
+        newPage.module.show(_onNextCallback);
+      }
+    }
+
+    return { register: register, start: start, next: next };
+  })();
+
+
+  /**
+   * ============================================================
+   *  IntroPage —— 首页（第 1 页）
+   *
+   *  接口：{ show(onNext), destroy() }
+   *  内容：大标题 + 装饰元素 + "点我开始！" 按钮
+   * ============================================================
+   */
+  var IntroPage = (function () {
+    var _el = null;
+    var _btnEl = null;
+    var _onNext = null;
+    var _bgmAudio = null;
+
+    function _createDOM() {
+      _el = document.createElement('div');
+      _el.className = 'activity-page ap-intro';
+      _el.innerHTML = '' +
+        '<div class="intro-ribbon intro-ribbon--1"></div>' +
+        '<div class="intro-ribbon intro-ribbon--2"></div>' +
+        '<div class="intro-ribbon intro-ribbon--3"></div>' +
+        '<div class="intro-ribbon intro-ribbon--4"></div>' +
+        '<div class="intro-star intro-star--1">&#10022;</div>' +
+        '<div class="intro-star intro-star--2">&#10022;</div>' +
+        '<div class="intro-star intro-star--3">&#10022;</div>' +
+        '<div class="intro-star intro-star--4">&#10022;</div>' +
+        '<div class="intro-star intro-star--5">&#10022;</div>' +
+        '<div class="intro-star intro-star--6">&#10022;</div>' +
+        '<div class="intro-note intro-note--1">给最好的周老师~</div>' +
+        '<div class="intro-note intro-note--2">5.20 快乐!</div>' +
+        '<h1 class="ap-title">5.20 班主任节<br>主题活动</h1>' +
+        '<button class="ap-btn">点我开始！</button>';
+
+      _btnEl = _el.querySelector('.ap-btn');
+      document.body.appendChild(_el);
+    }
+
+    function show(onNext) {
+      _onNext = onNext;
+      _createDOM();
+
+      // 下一帧触发淡入动画
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          _el.classList.add('ap--visible');
+        });
+      });
+
+      _btnEl.addEventListener('click', _handleStart);
+    }
+
+    function _handleStart() {
+      // iOS Safari 音频解锁：在手势同步栈中播放静音 base64 WAV
       var unlocker = new Audio(
         'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA='
       );
       unlocker.play().catch(function () {});
-      startEl.classList.add('mg-screen--hidden');
+
+      _el.classList.remove('ap--visible');
+      _el.classList.add('ap--exiting');
       setTimeout(function () {
-        startEl.style.display = 'none';
-        MemoryGame.init();
+        if (typeof _onNext === 'function') _onNext();
       }, 500);
-    });
+    }
 
-    /* 阶段三：点击"进入下一关" → 显示俏皮文字 → 进入幻灯片 */
-    btnNextLevel.addEventListener('click', function () {
-      /* 隐藏按钮 */
-      btnNextLevel.style.display = 'none';
-      /* 显示俏皮文字（淡入） */
-      trickEl.style.display = 'block';
-      void trickEl.offsetHeight;
-      trickEl.classList.add('mg-trick--visible');
+    function destroy() {
+      if (_btnEl) _btnEl.removeEventListener('click', _handleStart);
+      if (_el && _el.parentNode) _el.parentNode.removeChild(_el);
+      _el = null;
+      _btnEl = null;
+      _onNext = null;
+    }
 
-      /* 等 5 秒后进入幻灯片 */
+    return { show: show, destroy: destroy };
+  })();
+
+
+  /**
+   * ============================================================
+   *  VideoPage —— 刘万昕视频页（第 2 页）
+   *
+   *  接口：{ show(onNext), destroy() }
+   *  内容：大标题 + 装饰 + "看完啦" 按钮（无视频播放器）
+   * ============================================================
+   */
+  var VideoPage = (function () {
+    var _el = null;
+    var _btnEl = null;
+    var _onNext = null;
+
+    function _createDOM() {
+      _el = document.createElement('div');
+      _el.className = 'activity-page ap-video';
+      _el.innerHTML = '' +
+        '<div class="video-play-icon"></div>' +
+        '<h1 class="ap-title">刘万昕视频</h1>' +
+        '<button class="ap-btn">看完啦~点我进入下一个活动~</button>';
+
+      _btnEl = _el.querySelector('.ap-btn');
+      document.body.appendChild(_el);
+    }
+
+    function show(onNext) {
+      _onNext = onNext;
+      _createDOM();
+
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          _el.classList.add('ap--visible');
+        });
+      });
+
+      _btnEl.addEventListener('click', _handleNext);
+    }
+
+    function _handleNext() {
+      _el.classList.remove('ap--visible');
+      _el.classList.add('ap--exiting');
       setTimeout(function () {
-        /* 淡出下一关页面 */
-        nextLevelEl.classList.remove('mg-screen--visible');
-        nextLevelEl.classList.add('mg-screen--hidden');
-        setTimeout(function () {
-          nextLevelEl.style.display = 'none';
-          nextLevelEl.classList.remove('mg-screen--hidden');
-          /* 销毁游戏 */
-          MemoryGame.destroy();
-          /* 隐藏 wrapper */
-          document.getElementById('mg-wrapper').style.display = 'none';
-          /* 进入幻灯片 */
-          SlideshowPage.show();
-        }, 600);
-      }, 5000);
-    });
+        if (typeof _onNext === 'function') _onNext();
+      }, 500);
+    }
+
+    function destroy() {
+      if (_btnEl) _btnEl.removeEventListener('click', _handleNext);
+      if (_el && _el.parentNode) _el.parentNode.removeChild(_el);
+      _el = null;
+      _btnEl = null;
+      _onNext = null;
+    }
+
+    return { show: show, destroy: destroy };
+  })();
+
+
+  /**
+   * ============================================================
+   *  DrumGamePage —— 击鼓传花（第 3 页）
+   *
+   *  接口：{ show(onNext), destroy() }
+   *  内容：大标题 + 副标题 + 鼓/彩纸/音符装饰 + BGM
+   * ============================================================
+   */
+  var DrumGamePage = (function () {
+    var _el = null;
+    var _btnEl = null;
+    var _onNext = null;
+    var _bgmAudio = null;
+
+    /* 鼓的 SVG 图案 */
+    var _drumSVG = '<svg viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+      '<ellipse cx="50" cy="22" rx="42" ry="10" fill="#c0392b" stroke="#a93226" stroke-width="2"/>' +
+      '<rect x="8" y="22" width="84" height="42" rx="2" fill="#e74c3c" stroke="#c0392b" stroke-width="2"/>' +
+      '<ellipse cx="50" cy="64" rx="42" ry="10" fill="#c0392b" stroke="#a93226" stroke-width="2"/>' +
+      '<line x1="8" y1="32" x2="92" y2="32" stroke="#f5b7b1" stroke-width="1.5" opacity="0.6"/>' +
+      '<line x1="8" y1="42" x2="92" y2="42" stroke="#f5b7b1" stroke-width="1.5" opacity="0.6"/>' +
+      '<line x1="8" y1="52" x2="92" y2="52" stroke="#f5b7b1" stroke-width="1.5" opacity="0.6"/>' +
+      '<line x1="30" y1="22" x2="30" y2="64" stroke="#d4a373" stroke-width="3"/>' +
+      '<line x1="70" y1="22" x2="70" y2="64" stroke="#d4a373" stroke-width="3"/>' +
+      '</svg>';
+
+    function _createDOM() {
+      _el = document.createElement('div');
+      _el.className = 'activity-page ap-drum';
+      _el.innerHTML = '' +
+        '<div class="drum-deco drum-deco--1">' + _drumSVG + '</div>' +
+        '<div class="drum-deco drum-deco--2">' + _drumSVG + '</div>' +
+        '<div class="confetti confetti--1"></div>' +
+        '<div class="confetti confetti--2"></div>' +
+        '<div class="confetti confetti--3"></div>' +
+        '<div class="confetti confetti--4"></div>' +
+        '<div class="confetti confetti--5"></div>' +
+        '<div class="confetti confetti--6"></div>' +
+        '<div class="music-note music-note--1">&#9835;</div>' +
+        '<div class="music-note music-note--2">&#9834;</div>' +
+        '<div class="music-note music-note--3">&#9833;</div>' +
+        '<div class="music-note music-note--4">&#9835;</div>' +
+        '<h1 class="ap-title">击鼓传花</h1>' +
+        '<p class="ap-subtitle">传到的人要夸周老师三个优点呦~</p>' +
+        '<button class="ap-btn">玩完啦~点我进入下一个活动~</button>';
+
+      _btnEl = _el.querySelector('.ap-btn');
+      document.body.appendChild(_el);
+    }
+
+    function _startBGM() {
+      var url = (GAME_CONFIG.activityBgm && GAME_CONFIG.activityBgm.drumGame) || '';
+      if (!url) return;
+      _bgmAudio = new Audio(url);
+      _bgmAudio.loop = true;
+      _bgmAudio.volume = 0.5;
+      _bgmAudio.play().catch(function () {});
+      _bgmAudio.addEventListener('ended', function () {
+        if (_bgmAudio) _bgmAudio.play().catch(function () {});
+      });
+    }
+
+    function _stopBGM() {
+      if (!_bgmAudio) return;
+      _bgmAudio.pause();
+      _bgmAudio.currentTime = 0;
+      _bgmAudio = null;
+    }
+
+    function show(onNext) {
+      _onNext = onNext;
+      _createDOM();
+
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          _el.classList.add('ap--visible');
+        });
+      });
+
+      _startBGM();
+      _btnEl.addEventListener('click', _handleNext);
+    }
+
+    function _handleNext() {
+      _el.classList.remove('ap--visible');
+      _el.classList.add('ap--exiting');
+      setTimeout(function () {
+        if (typeof _onNext === 'function') _onNext();
+      }, 500);
+    }
+
+    function destroy() {
+      if (_btnEl) _btnEl.removeEventListener('click', _handleNext);
+      _stopBGM();
+      if (_el && _el.parentNode) _el.parentNode.removeChild(_el);
+      _el = null;
+      _btnEl = null;
+      _onNext = null;
+    }
+
+    return { show: show, destroy: destroy };
+  })();
+
+
+  /**
+   * ============================================================
+   *  GuessWhoPage —— 猜猜我是谁（第 4 页）
+   *
+   *  接口：{ show(onNext), destroy() }
+   *  内容：大标题 + 游戏规则 + 黑板/数学装饰 + BGM
+   * ============================================================
+   */
+  var GuessWhoPage = (function () {
+    var _el = null;
+    var _btnEl = null;
+    var _onNext = null;
+    var _bgmAudio = null;
+
+    function _createDOM() {
+      _el = document.createElement('div');
+      _el.className = 'activity-page ap-guess';
+      _el.innerHTML = '' +
+        '<div class="blackboard-frame"></div>' +
+        '<div class="chalk-doodle chalk-doodle--1">a&sup2; + b&sup2; = c&sup2;</div>' +
+        '<div class="chalk-doodle chalk-doodle--2">S = &pi;r&sup2;</div>' +
+        '<div class="chalk-doodle chalk-doodle--3">&Delta;x &rarr; 0</div>' +
+        '<div class="chalk-doodle chalk-doodle--4">1+1=2</div>' +
+        '<h1 class="ap-title">猜猜我是谁</h1>' +
+        '<p class="ap-subtitle">周老师转过身面向屏幕，随机挑选几名同学在任意位置大喊周老师，周老师有三次机会猜这个人是谁~</p>' +
+        '<button class="ap-btn">豪玩！点我进入下一个活动~</button>';
+
+      _btnEl = _el.querySelector('.ap-btn');
+      document.body.appendChild(_el);
+    }
+
+    function _startBGM() {
+      var url = (GAME_CONFIG.activityBgm && GAME_CONFIG.activityBgm.guessWho) || '';
+      if (!url) return;
+      _bgmAudio = new Audio(url);
+      _bgmAudio.loop = true;
+      _bgmAudio.volume = 0.5;
+      _bgmAudio.play().catch(function () {});
+      _bgmAudio.addEventListener('ended', function () {
+        if (_bgmAudio) _bgmAudio.play().catch(function () {});
+      });
+    }
+
+    function _stopBGM() {
+      if (!_bgmAudio) return;
+      _bgmAudio.pause();
+      _bgmAudio.currentTime = 0;
+      _bgmAudio = null;
+    }
+
+    function show(onNext) {
+      _onNext = onNext;
+      _createDOM();
+
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          _el.classList.add('ap--visible');
+        });
+      });
+
+      _startBGM();
+      _btnEl.addEventListener('click', _handleNext);
+    }
+
+    function _handleNext() {
+      _el.classList.remove('ap--visible');
+      _el.classList.add('ap--exiting');
+      setTimeout(function () {
+        if (typeof _onNext === 'function') _onNext();
+      }, 500);
+    }
+
+    function destroy() {
+      if (_btnEl) _btnEl.removeEventListener('click', _handleNext);
+      _stopBGM();
+      if (_el && _el.parentNode) _el.parentNode.removeChild(_el);
+      _el = null;
+      _btnEl = null;
+      _onNext = null;
+    }
+
+    return { show: show, destroy: destroy };
+  })();
+
+
+  /**
+   * ============================================================
+   *  RopeGamePage —— 闭眼过绳（第 5 页）
+   *
+   *  接口：{ show(onNext), destroy() }
+   *  内容：大标题 + 副标题 + 绳索装饰 + BGM
+   * ============================================================
+   */
+  var RopeGamePage = (function () {
+    var _el = null;
+    var _btnEl = null;
+    var _onNext = null;
+    var _bgmAudio = null;
+
+    /* 绳索 SVG */
+    var _ropeSVG = '<svg viewBox="0 0 200 30" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+      '<path d="M5 15 Q30 5, 60 15 T120 15 T180 15" stroke="#8B7355" stroke-width="4" stroke-linecap="round" fill="none"/>' +
+      '</svg>';
+
+    function _createDOM() {
+      _el = document.createElement('div');
+      _el.className = 'activity-page ap-rope';
+      _el.innerHTML = '' +
+        '<div class="rope-deco rope-deco--1">' + _ropeSVG + '</div>' +
+        '<div class="rope-deco rope-deco--2">' + _ropeSVG + '</div>' +
+        '<div class="rope-deco rope-deco--3">' + _ropeSVG + '</div>' +
+        '<h1 class="ap-title">闭眼过绳</h1>' +
+        '<p class="ap-subtitle">周老师挑选两位学生用两根绳子布置障碍，周老师需要闭着眼睛听从两名学生的指挥穿过绳子，碰到绳子算挑战失败哦~</p>' +
+        '<button class="ap-btn">完成啦~点我进入下一个活动~</button>';
+
+      _btnEl = _el.querySelector('.ap-btn');
+      document.body.appendChild(_el);
+    }
+
+    function _startBGM() {
+      var url = (GAME_CONFIG.activityBgm && GAME_CONFIG.activityBgm.ropeGame) || '';
+      if (!url) return;
+      _bgmAudio = new Audio(url);
+      _bgmAudio.loop = true;
+      _bgmAudio.volume = 0.5;
+      _bgmAudio.play().catch(function () {});
+      _bgmAudio.addEventListener('ended', function () {
+        if (_bgmAudio) _bgmAudio.play().catch(function () {});
+      });
+    }
+
+    function _stopBGM() {
+      if (!_bgmAudio) return;
+      _bgmAudio.pause();
+      _bgmAudio.currentTime = 0;
+      _bgmAudio = null;
+    }
+
+    function show(onNext) {
+      _onNext = onNext;
+      _createDOM();
+
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          _el.classList.add('ap--visible');
+        });
+      });
+
+      _startBGM();
+      _btnEl.addEventListener('click', _handleNext);
+    }
+
+    function _handleNext() {
+      _el.classList.remove('ap--visible');
+      _el.classList.add('ap--exiting');
+      setTimeout(function () {
+        if (typeof _onNext === 'function') _onNext();
+      }, 500);
+    }
+
+    function destroy() {
+      if (_btnEl) _btnEl.removeEventListener('click', _handleNext);
+      _stopBGM();
+      if (_el && _el.parentNode) _el.parentNode.removeChild(_el);
+      _el = null;
+      _btnEl = null;
+      _onNext = null;
+    }
+
+    return { show: show, destroy: destroy };
+  })();
+
+
+  /**
+   * ============================================================
+   *  DontDoChallengePage —— 不要做挑战（第 6 页）
+   *
+   *  接口：{ show(onNext), destroy() }
+   *  内容：大标题 + 副标题 + 搞笑表情/舞台灯光装饰 + BGM
+   * ============================================================
+   */
+  var DontDoChallengePage = (function () {
+    var _el = null;
+    var _btnEl = null;
+    var _onNext = null;
+    var _bgmAudio = null;
+
+    function _createDOM() {
+      _el = document.createElement('div');
+      _el.className = 'activity-page ap-dontdo';
+      _el.innerHTML = '' +
+        '<div class="stage-light stage-light--1"></div>' +
+        '<div class="stage-light stage-light--2"></div>' +
+        '<div class="funny-face funny-face--1">&#128526;</div>' +
+        '<div class="funny-face funny-face--2">&#129315;</div>' +
+        '<div class="funny-face funny-face--3">&#128527;</div>' +
+        '<div class="funny-face funny-face--4">&#128520;</div>' +
+        '<h1 class="ap-title">不要做挑战</h1>' +
+        '<p class="ap-subtitle">随机抽取一个动作、一个词语或其它内容，若周老师在 2 分钟内做出了这个动作或说出了这个词语则挑战失败~</p>' +
+        '<button class="ap-btn">好好玩~点我进入下一个活动~</button>';
+
+      _btnEl = _el.querySelector('.ap-btn');
+      document.body.appendChild(_el);
+    }
+
+    function _startBGM() {
+      var url = (GAME_CONFIG.activityBgm && GAME_CONFIG.activityBgm.dontDoChallenge) || '';
+      if (!url) return;
+      _bgmAudio = new Audio(url);
+      _bgmAudio.loop = true;
+      _bgmAudio.volume = 0.5;
+      _bgmAudio.play().catch(function () {});
+      _bgmAudio.addEventListener('ended', function () {
+        if (_bgmAudio) _bgmAudio.play().catch(function () {});
+      });
+    }
+
+    function _stopBGM() {
+      if (!_bgmAudio) return;
+      _bgmAudio.pause();
+      _bgmAudio.currentTime = 0;
+      _bgmAudio = null;
+    }
+
+    function show(onNext) {
+      _onNext = onNext;
+      _createDOM();
+
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          _el.classList.add('ap--visible');
+        });
+      });
+
+      _startBGM();
+      _btnEl.addEventListener('click', _handleNext);
+    }
+
+    function _handleNext() {
+      _el.classList.remove('ap--visible');
+      _el.classList.add('ap--exiting');
+      setTimeout(function () {
+        if (typeof _onNext === 'function') _onNext();
+      }, 500);
+    }
+
+    function destroy() {
+      if (_btnEl) _btnEl.removeEventListener('click', _handleNext);
+      _stopBGM();
+      if (_el && _el.parentNode) _el.parentNode.removeChild(_el);
+      _el = null;
+      _btnEl = null;
+      _onNext = null;
+    }
+
+    return { show: show, destroy: destroy };
+  })();
+
+
+  /**
+   * ============================================================
+   *  MemoryGameAdapter —— 翻牌游戏适配器（第 7 页）
+   *
+   *  将 MemoryGame 的 {init, destroy, onFinish} 接口
+   *  适配为 ActivityPageManager 的 {show(onNext), destroy()} 接口
+   *
+   *  流程：show → MemoryGame.init() → 游戏完成 → 过渡页（"骗你的"） → onNext()
+   * ============================================================
+   */
+  var MemoryGameAdapter = (function () {
+    var _onNext = null;
+    var _timers = [];
+
+    function _clearTimers() {
+      _timers.forEach(function (t) { clearTimeout(t); });
+      _timers = [];
+    }
+
+    function show(onNext) {
+      _onNext = onNext;
+      _clearTimers();
+
+      // 确保 wrapper 可见
+      document.getElementById('mg-wrapper').style.display = '';
+
+      // 隐藏游戏完成界面（防重复进入）
+      var finishScreen = document.getElementById('mg-finish-screen');
+      if (finishScreen) finishScreen.classList.remove('mg-finish--visible');
+
+      // 注册完成回调
+      MemoryGame.onFinish(function () {
+        _timers.push(setTimeout(function () {
+          // 隐藏游戏完成界面
+          if (finishScreen) finishScreen.classList.remove('mg-finish--visible');
+
+          // 显示"下一关"过渡页面（按钮可见，俏皮文字隐藏）
+          var nextLevelEl = document.getElementById('mg-next-level-screen');
+          var btnNextLevel = document.getElementById('mg-btn-next-level');
+          var trickEl = document.getElementById('mg-nextlevel-trick');
+
+          nextLevelEl.style.display = '';
+          btnNextLevel.style.display = '';
+          trickEl.style.display = 'none';
+          trickEl.classList.remove('mg-trick--visible');
+          void nextLevelEl.offsetHeight;
+          nextLevelEl.classList.add('mg-screen--visible');
+
+          // 用户点击"进入下一关"按钮后，再显示俏皮文字
+          btnNextLevel.onclick = function () {
+            btnNextLevel.style.display = 'none';
+            trickEl.style.display = 'block';
+            void trickEl.offsetHeight;
+            trickEl.classList.add('mg-trick--visible');
+
+            // 5 秒后进入下一页（幻灯片）
+            _timers.push(setTimeout(function () {
+              nextLevelEl.classList.remove('mg-screen--visible');
+              nextLevelEl.classList.add('mg-screen--hidden');
+              _timers.push(setTimeout(function () {
+                nextLevelEl.style.display = 'none';
+                nextLevelEl.classList.remove('mg-screen--hidden');
+                // 恢复过渡页的默认状态，方便下次进入
+                btnNextLevel.style.display = '';
+                trickEl.style.display = 'none';
+                trickEl.classList.remove('mg-trick--visible');
+
+                MemoryGame.destroy();
+                document.getElementById('mg-wrapper').style.display = 'none';
+
+                if (typeof _onNext === 'function') _onNext();
+              }, 600));
+            }, 5000));
+          };
+        }, 1200));
+      });
+
+      // 启动游戏
+      MemoryGame.init();
+    }
+
+    function destroy() {
+      _clearTimers();
+    }
+
+    return { show: show, destroy: destroy };
+  })();
+
+
+  /**
+   * ============================================================
+   *  SlideshowAdapter —— 幻灯片适配器（第 8 页）
+   *
+   *  将 SlideshowPage 的 {show, destroy} 接口直接适配
+   * ============================================================
+   */
+  var SlideshowAdapter = (function () {
+    var _onNext = null;
+
+    function show(onNext) {
+      _onNext = onNext;
+      SlideshowPage.show();
+    }
+
+    function destroy() {
+      SlideshowPage.destroy();
+    }
+
+    return { show: show, destroy: destroy };
+  })();
+
+
+  /* ============================================================
+     页面启动流程：注册所有页面模块 → 从首页开始
+  ============================================================ */
+  (function boot() {
+    // 隐藏游戏相关 DOM（由各页面适配器按需显示）
+    document.getElementById('mg-wrapper').style.display = 'none';
+    document.getElementById('mg-finish-screen').classList.remove('mg-finish--visible');
+
+    // 注册 8 个页面（按活动顺序）
+    ActivityPageManager.register('intro',           IntroPage);
+    ActivityPageManager.register('video',           VideoPage);
+    ActivityPageManager.register('drumGame',        DrumGamePage);
+    ActivityPageManager.register('guessWho',        GuessWhoPage);
+    ActivityPageManager.register('ropeGame',        RopeGamePage);
+    ActivityPageManager.register('dontDoChallenge', DontDoChallengePage);
+    ActivityPageManager.register('memoryGame',      MemoryGameAdapter);
+    ActivityPageManager.register('slideshow',       SlideshowAdapter);
+
+    // 启动！从第一页（首页）开始
+    ActivityPageManager.start();
   })();
 
   </script>
