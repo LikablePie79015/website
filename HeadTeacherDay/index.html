@@ -473,7 +473,7 @@
     }
 
     /* =============================
-       全屏遮罩基类（Loading / Start）
+       全屏遮罩基类（Start Screen 等）
     ============================= */
     .mg-screen {
       position: fixed;
@@ -494,22 +494,6 @@
     .mg-screen.mg-screen--hidden {
       opacity: 0;
       pointer-events: none;
-    }
-
-    /* =============================
-       加载界面（Loading Screen）
-    ============================= */
-    .mg-loading-text {
-      font-size: clamp(1rem, 3.2vw, 1.35rem);
-      color: #8a6a50;
-      font-family: 'Georgia', '宋体', serif;
-      letter-spacing: 0.12em;
-      animation: mg-loading-breath 2s ease-in-out infinite;
-    }
-
-    @keyframes mg-loading-breath {
-      0%, 100% { opacity: 0.45; transform: translateY(0); }
-      50%      { opacity: 1;    transform: translateY(-4px); }
     }
 
     /* =============================
@@ -700,13 +684,8 @@
 </head>
 <body>
 
-  <!-- 加载界面 -->
-  <div id="mg-loading-screen" class="mg-screen">
-    <div class="mg-loading-text">正在准备中…</div>
-  </div>
-
   <!-- 开始界面 -->
-  <div id="mg-start-screen" class="mg-screen" style="display:none">
+  <div id="mg-start-screen" class="mg-screen">
     <h1 class="mg-start-title">纸条配对</h1>
     <p class="mg-start-subtitle">找出相同名字的两张纸条</p>
     <button class="mg-btn-start" id="mg-btn-start">开始游戏</button>
@@ -834,83 +813,6 @@
     slideshowBgmUrl: './resources/bgm2.mp3',
     /** 幻灯片切换间隔（毫秒） */
     slideshowInterval: 10000
-  };
-
-
-  /**
-   * ============================================================
-   *  AssetPreloader —— 资源预加载工具
-   *  在 Loading Screen 阶段调用，确保资源可播放后再进入游戏
-   * ============================================================
-   */
-  const AssetPreloader = {
-
-    /** 默认超时时间（毫秒），防止网络极差时卡死 */
-    _timeout: 8000,
-
-    /**
-     * 预加载所有游戏资源
-     * @returns {Promise} 全部资源就绪（或超时兜底）后 resolve
-     */
-    preload: function () {
-      var paths = [];
-      if (GAME_CONFIG.bgmUrl)            paths.push({ path: GAME_CONFIG.bgmUrl,            type: 'audio', label: 'BGM' });
-      if (GAME_CONFIG.snapSoundUrl)      paths.push({ path: GAME_CONFIG.snapSoundUrl,      type: 'audio', label: 'Snap Sound' });
-      if (GAME_CONFIG.matchEffectVideoUrl) paths.push({ path: GAME_CONFIG.matchEffectVideoUrl, type: 'video', label: 'Match Effect Video' });
-
-      if (paths.length === 0) {
-        return Promise.resolve();
-      }
-
-      var tasks = paths.map(function (item) {
-        return AssetPreloader._loadOne(item);
-      });
-
-      // 全部成功或超时后 resolve，不 reject（不阻断游戏）
-      return Promise.race([
-        Promise.all(tasks),
-        new Promise(function (resolve) { setTimeout(resolve, AssetPreloader._timeout); })
-      ]);
-    },
-
-    /**
-     * 加载单个资源
-     * - audio: 等待 canplaythrough 事件
-     * - video: 等待 loadeddata 事件
-     */
-    _loadOne: function (item) {
-      return new Promise(function (resolve) {
-        var el;
-
-        if (item.type === 'video') {
-          el = document.createElement('video');
-          el.preload = 'auto';
-          el.muted = true;
-          el.src = item.path;
-          el.addEventListener('loadeddata', function () {
-            // 释放临时元素
-            el.removeAttribute('src');
-            el.load();
-            resolve();
-          });
-          el.addEventListener('error', function () {
-            console.warn('[AssetPreloader] Failed to load resource (' + item.label + '): ' + item.path);
-            resolve(); // 失败不阻断
-          });
-        } else {
-          el = new Audio();
-          el.preload = 'auto';
-          el.src = item.path;
-          el.addEventListener('canplaythrough', function () {
-            resolve();
-          });
-          el.addEventListener('error', function () {
-            console.warn('[AssetPreloader] Failed to load resource (' + item.label + '): ' + item.path);
-            resolve(); // 失败不阻断
-          });
-        }
-      });
-    }
   };
 
 
@@ -1590,7 +1492,7 @@
       init();
     });
 
-    return { init, destroy, onFinish, preloadAssets: AssetPreloader.preload };
+    return { init, destroy, onFinish };
 
   })(); // END MemoryGame IIFE
 
@@ -1768,17 +1670,16 @@
 
 
   /* ============================================================
-     页面启动流程：Loading → Start → Game → Next Level → Slideshow
+     页面启动流程：Start → Game → Next Level → Slideshow
   ============================================================ */
   (function boot() {
-    var loadingEl     = document.getElementById('mg-loading-screen');
     var startEl       = document.getElementById('mg-start-screen');
     var btnStart      = document.getElementById('mg-btn-start');
     var nextLevelEl   = document.getElementById('mg-next-level-screen');
     var btnNextLevel  = document.getElementById('mg-btn-next-level');
     var trickEl       = document.getElementById('mg-nextlevel-trick');
 
-    /* 阶段三：注册游戏完成回调 —— 接管原有 finish screen */
+    /* 阶段一：注册游戏完成回调 —— 接管原有 finish screen */
     MemoryGame.onFinish(function () {
       /* 延迟等 _triggerFinish 的淡出动画执行完毕 */
       setTimeout(function () {
@@ -1792,15 +1693,6 @@
         void nextLevelEl.offsetHeight;
         nextLevelEl.classList.add('mg-screen--visible');
       }, 1200);
-    });
-
-    /* 阶段一：预加载资源 → 切换到开始界面 */
-    AssetPreloader.preload().then(function () {
-      loadingEl.classList.add('mg-screen--hidden');
-      setTimeout(function () {
-        loadingEl.style.display = 'none';
-        startEl.style.display = '';
-      }, 500);
     });
 
     /* 阶段二：点击开始 → 进入游戏 */
@@ -1817,7 +1709,7 @@
       }, 500);
     });
 
-    /* 阶段四：点击"进入下一关" → 显示俏皮文字 → 进入幻灯片 */
+    /* 阶段三：点击"进入下一关" → 显示俏皮文字 → 进入幻灯片 */
     btnNextLevel.addEventListener('click', function () {
       /* 隐藏按钮 */
       btnNextLevel.style.display = 'none';
