@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>感谢 · 5.20 班主任节</title>
+<style>
+  /* =============================
+     基础重置 & 全局样式
+     ============================= */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap');
+
+  :root {
+    --paper:    #fdf6ec;
+    --paper-dk: #f0e2cc;
+    --brown:    #6b4c32;
+    --brown-lt: #8b6f4e;
+    --accent:   #c49a6c;
+    --accent2:  #e8b87a;
+    --pink:     #e8a0a0;
+    --blue:     #7eb8d8;
+    --green:    #7ec8a0;
+    --yellow:   #f0d078;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: 'Georgia', 'Noto Serif SC', '宋体', serif;
+    background: var(--paper);
+    color: var(--brown);
+  }
+
+  /* =============================
+     背景层 - 纸张纹理
+     ============================= */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      /* 纸张纤维纹理 */
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 28px,
+        rgba(180,150,100,0.04) 28px,
+        rgba(180,150,100,0.04) 29px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 28px,
+        rgba(180,150,100,0.03) 28px,
+        rgba(180,150,100,0.03) 29px
+      ),
+      /* 暖色渐变 */
+      radial-gradient(ellipse at 20% 20%, rgba(240, 208, 120, 0.18) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(200, 230, 200, 0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(232, 184, 122, 0.08) 0%, transparent 60%),
+      linear-gradient(175deg, #fdf6ec 0%, #f5e6d0 40%, #efe0cc 100%);
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* 旧纸张边缘阴影 */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    box-shadow:
+      inset 0 0 80px rgba(160,120,70,0.10),
+      inset 0 0 200px rgba(160,120,70,0.05);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* =============================
+     装饰画布（星星/光点/彩带）
+     ============================= */
+  #deco-canvas {
+    position: fixed; inset: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  /* =============================
+     黑板装饰（左上角）
+     ============================= */
+  .blackboard-deco {
+    position: fixed;
+    top: clamp(8px, 2vh, 24px);
+    left: clamp(8px, 2vw, 24px);
+    width: clamp(80px, 15vw, 160px);
+    height: clamp(56px, 10vw, 112px);
+    background: #2c3e2c;
+    border: 3px solid #5a4a32;
+    border-radius: 6px;
+    box-shadow: 3px 4px 12px rgba(0,0,0,0.18);
+    z-index: 3;
+    display: flex; align-items: center; justify-content: center;
+    transform: rotate(-3deg);
+    opacity: 0.55;
+  }
+  .blackboard-deco::after {
+    content: '5.20 ❤';
+    color: #e8b87a;
+    font-size: clamp(0.75rem, 2.2vw, 1.2rem);
+    font-family: 'Comic Sans MS', '楷体', cursive;
+    letter-spacing: 0.1em;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+  }
+
+  /* =============================
+     贴纸装饰
+     ============================= */
+  .sticker {
+    position: fixed;
+    z-index: 3;
+    pointer-events: none;
+    opacity: 0.5;
+    font-size: clamp(1.5rem, 4vw, 2.8rem);
+    animation: sticker-float 6s ease-in-out infinite;
+  }
+  .sticker--1 { top: 6%;   right: 5%;  animation-delay: 0s; }
+  .sticker--2 { top: 18%;  left: 3%;  animation-delay: 1.2s; transform: rotate(-12deg); }
+  .sticker--3 { bottom: 22%; left: 6%; animation-delay: 0.6s; }
+  .sticker--4 { bottom: 12%; right: 8%; animation-delay: 2s; transform: rotate(8deg); }
+  .sticker--5 { top: 40%;  right: 3%; animation-delay: 1.8s; transform: rotate(-6deg); }
+
+  @keyframes sticker-float {
+    0%, 100% { transform: translateY(0) rotate(var(--rot, 0deg)); }
+    50%       { transform: translateY(-6px) rotate(var(--rot, 0deg)); }
+  }
+
+  /* =============================
+     主内容容器
+     ============================= */
+  .page-wrap {
+    position: relative;
+    z-index: 10;
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: clamp(16px, 4vh, 48px) clamp(12px, 4vw, 48px);
+  }
+
+  /* =============================
+     标题卡片（模拟纸张）
+     ============================= */
+  .title-card {
+    position: relative;
+    max-width: 640px; width: 100%;
+    padding: clamp(20px, 4vh, 48px) clamp(16px, 4vw, 40px);
+    background:
+      linear-gradient(135deg, rgba(255,250,240,0.95) 0%, rgba(245,230,208,0.90) 100%);
+    border: 1.5px solid rgba(180,150,100,0.25);
+    border-radius: 12px;
+    box-shadow:
+      0 4px 24px rgba(160,120,70,0.12),
+      0 1px 4px rgba(160,120,70,0.08),
+      inset 0 0 40px rgba(255,240,200,0.20);
+    opacity: 0;
+    transform: translateY(28px);
+    animation: card-in 1.2s ease forwards 0.3s;
+  }
+
+  /* 纸张折角效果 */
+  .title-card::before {
+    content: '';
+    position: absolute;
+    top: -1px; right: -1px;
+    width: 44px; height: 44px;
+    background:
+      linear-gradient(225deg, var(--paper-dt, #f0e2cc) 0%, var(--paper-dt, #f0e2cc) 50%, transparent 50%);
+    border-bottom-left-radius: 10px;
+    box-shadow: -2px 2px 6px rgba(160,120,70,0.10);
+    z-index: 2;
+  }
+
+  /* 纸张横线效果 */
+  .title-card::after {
+    content: '';
+    position: absolute;
+    inset: 12px 16px;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 31px,
+      rgba(180,150,100,0.08) 31px,
+      rgba(180,150,100,0.08) 32px
+    );
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  @keyframes card-in {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* =============================
+     标题
+     ============================= */
+  .page-title {
+    position: relative; z-index: 1;
+    text-align: center;
+    font-size: clamp(1.6rem, 5vw, 2.6rem);
+    color: var(--brown);
+    letter-spacing: 0.12em;
+    margin-bottom: clamp(12px, 2.5vh, 28px);
+    font-weight: 700;
+    text-shadow: 1px 1px 2px rgba(160,120,70,0.15);
+  }
+  .page-title::after {
+    content: '';
+    display: block;
+    width: 60px; height: 2px;
+    margin: 10px auto 0;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    border-radius: 2px;
+  }
+
+  /* =============================
+     正文段落
+     ============================= */
+  .thanks-body {
+    position: relative; z-index: 1;
+    text-align: center;
+    font-size: clamp(1.1rem, 3vw, 1.4rem);
+    line-height: 2;
+    color: var(--brown-lt);
+    letter-spacing: 0.04em;
+  }
+  .thanks-body p {
+    margin-bottom: 0.6em;
+    opacity: 0;
+    transform: translateY(12px);
+    animation: para-in 0.7s ease forwards;
+  }
+  .thanks-body p:nth-child(1) { animation-delay: 0.8s; }
+  .thanks-body p:nth-child(2) { animation-delay: 3.8s; }
+  .thanks-body p:nth-child(3) { animation-delay: 6.8s; }
+  .thanks-body p:nth-child(4) { animation-delay: 9.8s; }
+  .thanks-body p:nth-child(5) { animation-delay: 12.8s; }
+  .thanks-body p:nth-child(6) { animation-delay: 15.8s; }
+
+  @keyframes para-in {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* 高亮名字 */
+  .hl {
+    color: var(--accent);
+    font-weight: 600;
+    padding: 0 1px;
+  }
+
+  /* 祝福文字 */
+  .blessing {
+    margin-top: 0.4em;
+    color: var(--brown);
+    font-weight: 600;
+    font-size: clamp(1.15rem, 3.2vw, 1.45rem);
+  }
+
+  /* =============================
+     右下角署名
+     ============================= */
+  .signature {
+    position: fixed;
+    bottom: clamp(12px, 3vh, 32px);
+    right: clamp(16px, 4vw, 40px);
+    z-index: 10;
+    text-align: right;
+    opacity: 0;
+    animation: sig-in 1s ease forwards 3s;
+  }
+  .signature__line {
+    font-size: clamp(0.95rem, 2.5vw, 1.15rem);
+    color: var(--brown-lt);
+    line-height: 1.8;
+    letter-spacing: 0.08em;
+    text-shadow: 0 1px 2px rgba(255,250,240,0.8);
+  }
+  .signature__line--class {
+    font-size: clamp(1.0rem, 2.7vw, 1.25rem);
+    color: var(--brown);
+    font-weight: 600;
+    letter-spacing: 0.12em;
+  }
+
+  @keyframes sig-in {
+    from { opacity: 0; transform: translateX(16px); }
+    to   { opacity: 0.85; transform: translateX(0); }
+  }
+
+  /* =============================
+     粉笔星装饰（署名旁）
+     ============================= */
+  .chalk-star {
+    position: fixed;
+    z-index: 9;
+    pointer-events: none;
+    opacity: 0;
+    animation: chalk-pop 0.6s ease forwards;
+  }
+  .chalk-star--1 { bottom: 80px; right: 60px; animation-delay: 3.5s; font-size: 1.1rem; }
+  .chalk-star--2 { bottom: 50px; right: 160px; animation-delay: 3.8s; font-size: 0.9rem; }
+  .chalk-star--3 { bottom: 110px; right: 140px; animation-delay: 4.1s; font-size: 1rem; }
+
+  @keyframes chalk-pop {
+    0%   { opacity: 0; transform: scale(0.3) rotate(-20deg); }
+    60%  { opacity: 1; transform: scale(1.2) rotate(5deg); }
+    100% { opacity: 0.7; transform: scale(1) rotate(0deg); }
+  }
+
+  /* =============================
+     顶部丝带装饰
+     ============================= */
+  .ribbon-top {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: clamp(32px, 5vh, 56px);
+    background: linear-gradient(90deg,
+      #e8a0a0 0%, #f0d078 16%, #7ec8a0 32%, #7eb8d8 48%,
+      #c49a6c 64%, #e8a0a0 80%, #f0d078 100%);
+    background-size: 300% 100%;
+    animation: ribbon-slide 8s linear infinite;
+    opacity: 0.18;
+    z-index: 4;
+    border-bottom-left-radius: 50% 30%;
+    border-bottom-right-radius: 50% 30%;
+  }
+  @keyframes ribbon-slide {
+    0%   { background-position: 0% 0; }
+    100% { background-position: 300% 0; }
+  }
+
+  /* =============================
+     底部纸张褶皱阴影
+     ============================= */
+  .paper-shadow {
+    position: fixed;
+    bottom: 0; left: 5%; right: 5%;
+    height: 20px;
+    background: radial-gradient(ellipse at 50% 100%, rgba(160,120,70,0.10) 0%, transparent 70%);
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  /* =============================
+     响应式微调
+     ============================= */
+  @media (max-height: 500px) {
+    .sticker { display: none; }
+    .blackboard-deco { display: none; }
+    .thanks-body { line-height: 1.7; }
+  }
+  @media (max-width: 380px) {
+    .title-card { padding: 16px 12px; }
+    .blackboard-deco { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 背景装饰画布 -->
+<canvas id="deco-canvas"></canvas>
+
+<!-- 顶部彩带 -->
+<div class="ribbon-top"></div>
+
+<!-- 黑板小装饰 -->
+<div class="blackboard-deco"></div>
+
+<!-- 贴纸 -->
+<div class="sticker sticker--1" style="--rot:-8deg">⭐</div>
+<div class="sticker sticker--2" style="--rot:-12deg">📚</div>
+<div class="sticker sticker--3" style="--rot:5deg">🎉</div>
+<div class="sticker sticker--4" style="--rot:8deg">❤️</div>
+<div class="sticker sticker--5" style="--rot:-6deg">✏️</div>
+
+<!-- 主内容 -->
+<div class="page-wrap">
+  <div class="title-card">
+    <div class="page-title">感 谢</div>
+    <div class="thanks-body">
+      <p>感谢周老师这几个月的陪伴、教导！</p>
+      <p>
+        感谢本次活动的策划者：<br>
+        <span class="hl">李佳峰</span>、<span class="hl">黄治棋</span>、<span class="hl">陈祥楷</span>、<span class="hl">刘万昕</span>！
+      </p>
+      <p>
+        感谢本次活动的主持：<br>
+        <span class="hl">刘正浩</span>、<span class="hl">刘万昕</span>、<span class="hl">李俊泽</span>、<br>
+        <span class="hl">梁靖珂</span>、<span class="hl">李沐阳</span>、<span class="hl">董淇</span>！
+      </p>
+      <p>感谢每一位热爱十一班周老师的同学！</p>
+      <p class="blessing">
+        祝同学们学业有成，前途无量！<br>
+        也祝愿今天的主角周松老师<br>
+        事业顺利、身体健康、幸福安康、快乐四方！
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- 右下角署名 -->
+<div class="signature">
+  <div class="signature__line">2026年5月20日</div>
+  <div class="signature__line signature__line--class">高一(11)班</div>
+</div>
+
+<!-- 粉笔星 -->
+<div class="chalk-star chalk-star--1">✦</div>
+<div class="chalk-star chalk-star--2">✧</div>
+<div class="chalk-star chalk-star--3">⋆</div>
+
+<!-- 底部纸张阴影 -->
+<div class="paper-shadow"></div>
+
+<script>
+/* ========================================
+   背景装饰动画（Canvas）
+   - 星星（闪烁）
+   - 光点（缓慢飘浮）
+   - 彩纸碎片（缓慢飘落）
+   ======================================== */
+(function () {
+  var canvas = document.getElementById('deco-canvas');
+  var ctx    = canvas.getContext('2d');
+  var W, H;
+  var stars    = [];
+  var dots     = [];
+  var confetti = [];
+  var animId;
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  /* ---------- 星星 ---------- */
+  function makeStar() {
+    return {
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 2.2 + 0.8,
+      alpha: Math.random() * 0.5 + 0.3,
+      dAlpha: (Math.random() - 0.5) * 0.015,
+      color: ['#f0d078', '#e8b87a', '#e8a0a0', '#7ec8a0', '#fff'][Math.floor(Math.random() * 5)]
+    };
+  }
+
+  /* ---------- 光点 ---------- */
+  function makeDot() {
+    return {
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 3 + 1,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: -(Math.random() * 0.4 + 0.1),
+      alpha: Math.random() * 0.35 + 0.15,
+      color: ['rgba(240,208,120,', 'rgba(232,184,122,', 'rgba(126,200,160,', 'rgba(232,160,160,'][Math.floor(Math.random() * 4)]
+    };
+  }
+
+  /* ---------- 彩纸碎片 ---------- */
+  function makeConfetti() {
+    var colors = ['#e8a0a0', '#f0d078', '#7ec8a0', '#7eb8d8', '#c49a6c', '#e8b87a'];
+    return {
+      x: Math.random() * W,
+      y: -10,
+      w: Math.random() * 8 + 4,
+      h: Math.random() * 5 + 3,
+      vx: (Math.random() - 0.5) * 0.6,
+      vy: Math.random() * 0.5 + 0.2,
+      rot: Math.random() * 360,
+      dRot: (Math.random() - 0.5) * 2,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      alpha: Math.random() * 0.3 + 0.15
+    };
+  }
+
+  function init() {
+    resize();
+    stars    = [];
+    dots     = [];
+    confetti = [];
+    for (var i = 0; i < 55; i++)  stars.push(makeStar());
+    for (var j = 0; j < 30; j++)  dots.push(makeDot());
+    for (var k = 0; k < 18; k++)  confetti.push(makeConfetti());
+  }
+
+  function drawStar(s) {
+    ctx.save();
+    ctx.translate(s.x, s.y);
+    ctx.globalAlpha = Math.max(0.1, Math.min(1, s.alpha));
+    ctx.fillStyle = s.color;
+    ctx.beginPath();
+    /* 五角星 */
+    for (var i = 0; i < 5; i++) {
+      var ang = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+      var method = i === 0 ? 'moveTo' : 'lineTo';
+      ctx[method](Math.cos(ang) * s.r, Math.sin(ang) * s.r);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawDot(d) {
+    ctx.save();
+    ctx.globalAlpha = d.alpha;
+    var grad = ctx.createRadialGradient(d.x, d.y, 0, d.x, d.y, d.r);
+    grad.addColorStop(0, d.color + '0.8)');
+    grad.addColorStop(1, d.color + '0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawConfetti(c) {
+    ctx.save();
+    ctx.translate(c.x, c.y);
+    ctx.rotate(c.rot * Math.PI / 180);
+    ctx.globalAlpha = c.alpha;
+    ctx.fillStyle = c.color;
+    ctx.fillRect(-c.w / 2, -c.h / 2, c.w, c.h);
+    ctx.restore();
+  }
+
+  function update() {
+    ctx.clearRect(0, 0, W, H);
+
+    /* 星星：闪烁 */
+    for (var i = 0; i < stars.length; i++) {
+      var s = stars[i];
+      s.alpha += s.dAlpha;
+      if (s.alpha <= 0.2 || s.alpha >= 0.9) s.dAlpha *= -1;
+      drawStar(s);
+    }
+
+    /* 光点：飘浮 */
+    for (var j = 0; j < dots.length; j++) {
+      var d = dots[j];
+      d.x += d.vx;
+      d.y += d.vy;
+      if (d.y < -10 || d.x < -10 || d.x > W + 10) {
+        dots[j] = makeDot();
+        dots[j].y = H + 10;
+      }
+      drawDot(d);
+    }
+
+    /* 彩纸：飘落 */
+    for (var k = 0; k < confetti.length; k++) {
+      var c = confetti[k];
+      c.x += c.vx;
+      c.y += c.vy;
+      c.rot += c.dRot;
+      if (c.y > H + 20) confetti[k] = makeConfetti();
+      drawConfetti(c);
+    }
+
+    animId = requestAnimationFrame(update);
+  }
+
+  window.addEventListener('resize', function () {
+    resize();
+  });
+
+  init();
+  update();
+})();
+</script>
+</body>
+</html>
