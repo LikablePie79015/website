@@ -1,0 +1,554 @@
+/* ============================================================
+   style.css — 化学合成游戏 ChemCraft
+   风格：实验室 + 草稿纸 / 黑板 + 科研感
+   ============================================================ */
+
+/* ---- CSS 变量 ---- */
+:root {
+  --bg:            #f5f1ea;
+  --surface:       #ffffff;
+  --surface-alt:   #ece6da;
+  --sidebar-bg:    #e8e2d5;
+  --sidebar-border:#d5cfc2;
+  --text:          #2c3e50;
+  --text-light:    #7f8c8d;
+  --accent:        #2c5f8a;
+  --accent-light:  #457b9d;
+  --danger:        #c0392b;
+  --success:       #27ae60;
+  --warning:       #f39c12;
+  --shadow:        0 2px 8px rgba(0,0,0,0.08);
+  --shadow-lg:     0 4px 20px rgba(0,0,0,0.12);
+  --radius:        8px;
+  --radius-sm:     4px;
+  --sidebar-w:     260px;
+  --header-h:      56px;
+
+  /* 黑板色 */
+  --blackboard:    #2c3e50;
+}
+
+/* ---- Reset ---- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg);
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ---- App 布局 ---- */
+.app {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ---- 侧栏 ---- */
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 10;
+  box-shadow: var(--shadow);
+}
+
+.sidebar-header {
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--sidebar-border);
+}
+
+.sidebar-header h2 {
+  font-size: 18px;
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.sidebar-header .subtitle {
+  font-size: 11px;
+  color: var(--text-light);
+  margin-top: 2px;
+}
+
+.sidebar-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.sidebar-section + .sidebar-section {
+  border-top: 1px solid var(--sidebar-border);
+}
+
+.section-title {
+  padding: 10px 16px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-light);
+}
+
+/* 元素列表 */
+.element-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 8px 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 6px;
+}
+
+.element-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 68px;
+  padding: 8px 4px 6px;
+  border-radius: var(--radius);
+  cursor: grab;
+  transition: all 0.15s ease;
+  background: var(--surface);
+  border: 1px solid transparent;
+  position: relative;
+}
+
+.element-item:hover {
+  background: #faf7f0;
+  border-color: var(--accent-light);
+  box-shadow: 0 2px 8px rgba(44,95,138,0.15);
+  transform: translateY(-1px);
+}
+
+.element-item:active {
+  cursor: grabbing;
+  transform: scale(0.95);
+}
+
+.element-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.element-icon img {
+  width: 44px;
+  height: 44px;
+}
+
+.element-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-top: 2px;
+}
+
+.element-info {
+  font-size: 9px;
+  color: var(--text-light);
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* 已发现物质 */
+.discovered-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 8px 8px;
+}
+
+.discovered-empty {
+  padding: 16px;
+  text-align: center;
+  color: var(--text-light);
+  font-size: 12px;
+  font-style: italic;
+}
+
+.discovered-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  margin-bottom: 4px;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+
+.discovered-item:hover {
+  border-color: var(--accent-light);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.discovered-formula {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  font-family: 'Times New Roman', Georgia, serif;
+  display: flex;
+  align-items: center;
+}
+
+.discovered-formula sub {
+  font-size: 0.7em;
+}
+
+.discovered-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.discovered-actions .btn-sm {
+  padding: 2px 8px;
+  font-size: 11px;
+  border-radius: 3px;
+  border: 1px solid #ccc;
+  background: #f8f8f8;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.discovered-actions .btn-sm:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.discovered-actions .btn-danger:hover {
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+/* ---- 主工作区 ---- */
+.workspace {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background:
+    /* 网格线 */
+    linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px),
+    var(--surface);
+  background-size: 40px 40px;
+  background-position: -1px -1px;
+}
+
+/* 顶部工具栏 */
+.workspace-header {
+  height: var(--header-h);
+  min-height: var(--header-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: var(--blackboard);
+  color: #ecf0f1;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  z-index: 5;
+}
+
+.formula-display {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.formula-label {
+  color: #bdc3c7;
+  font-size: 13px;
+}
+
+.formula-badge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255,255,255,0.12);
+  padding: 4px 12px;
+  border-radius: 14px;
+  font-family: 'Times New Roman', Georgia, serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: #f1c40f;
+  letter-spacing: 1px;
+}
+
+.formula-empty {
+  color: #95a5a6;
+  font-style: italic;
+  font-size: 13px;
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn {
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--accent-light);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-outline {
+  background: transparent;
+  color: #ecf0f1;
+  border: 1px solid rgba(255,255,255,0.3);
+}
+
+.btn-outline:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.6);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #e74c3c;
+}
+
+/* 画布容器 */
+.canvas-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  cursor: crosshair;
+}
+
+.canvas-container.dragging {
+  cursor: grabbing;
+}
+
+#canvas-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 拖拽幽灵 */
+.drag-ghost {
+  pointer-events: none;
+  z-index: 1000;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+}
+
+/* 提示浮层 */
+.tooltip {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--blackboard);
+  color: #ecf0f1;
+  padding: 10px 24px;
+  border-radius: 20px;
+  font-size: 13px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 100;
+}
+
+.tooltip.show {
+  opacity: 0.95;
+}
+
+/* ---- SVG 交互样式 ---- */
+.atom-group {
+  cursor: grab;
+  transition: filter 0.15s;
+}
+
+.atom-group:hover .atom-circle {
+  filter: brightness(1.15);
+}
+
+.atom-group:active {
+  cursor: grabbing;
+}
+
+.bond-group {
+  cursor: pointer;
+}
+
+.bond-group line:not(.bond-hit-area) {
+  transition: stroke 0.15s;
+}
+
+.bond-group:hover line:not(.bond-hit-area) {
+  stroke: var(--accent) !important;
+}
+
+/* ---- 框选矩形 ---- */
+#selection-box {
+  pointer-events: none;
+}
+
+/* ---- 画布状态光标 ---- */
+#canvas-svg[style*="cursor: grab"] {
+  cursor: grab;
+}
+
+/* ---- 响应式 ---- */
+@media (max-width: 768px) {
+  .app {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-width: 100%;
+    max-height: 160px;
+    flex-shrink: 0;
+    flex-direction: row;
+    border-right: none;
+    border-bottom: 1px solid var(--sidebar-border);
+  }
+
+  .sidebar-header {
+    display: none;
+  }
+
+  .sidebar-section {
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .element-list {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 4px 8px;
+  }
+
+  .element-item {
+    width: 56px;
+    min-width: 56px;
+    padding: 6px 2px 4px;
+  }
+
+  .element-icon img {
+    width: 36px;
+    height: 36px;
+  }
+
+  .element-label {
+    font-size: 10px;
+  }
+
+  .element-info {
+    display: none;
+  }
+
+  .discovered-list {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .workspace {
+    flex: 1;
+  }
+
+  .workspace-header {
+    height: 44px;
+    min-height: 44px;
+    padding: 0 12px;
+  }
+
+  .formula-display {
+    font-size: 13px;
+  }
+
+  .formula-badge {
+    font-size: 12px;
+    padding: 3px 8px;
+  }
+
+  .btn {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    max-height: 120px;
+  }
+
+  .element-item {
+    width: 44px;
+    min-width: 44px;
+    padding: 4px 1px 2px;
+  }
+
+  .element-icon img {
+    width: 28px;
+    height: 28px;
+  }
+
+  .element-label {
+    font-size: 9px;
+  }
+
+  .btn {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+
+  .formula-display {
+    font-size: 11px;
+  }
+
+  .section-title {
+    font-size: 9px;
+    padding: 6px 8px 2px;
+  }
+}

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChemCraft — 化学合成游戏</title>
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+  <div class="app">
+    <!-- ========== 左侧栏 ========== -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>⚗ ChemCraft</h2>
+        <div class="subtitle">化学合成实验室</div>
+      </div>
+
+      <!-- 基础元素 -->
+      <div class="sidebar-section">
+        <div class="section-title">基础元素</div>
+        <div class="element-list" id="basic-elements"></div>
+      </div>
+
+      <!-- 已发现物质 -->
+      <div class="sidebar-section">
+        <div class="section-title">已发现物质</div>
+        <div class="discovered-list" id="discovered-substances"></div>
+      </div>
+    </aside>
+
+    <!-- ========== 主工作区 ========== -->
+    <main class="workspace">
+      <!-- 顶栏：分子式 + 工具栏 -->
+      <header class="workspace-header">
+        <div class="formula-display" id="current-formula">
+          <span class="formula-empty">画布为空 — 从左侧拖动元素开始合成</span>
+        </div>
+        <div class="toolbar">
+          <button class="btn btn-primary" id="btn-save" title="保存当前合成的物质">💾 保存物质</button>
+          <button class="btn btn-outline" id="btn-clear" title="清空画布">🗑 清空画布</button>
+        </div>
+      </header>
+
+      <!-- SVG 画布 -->
+      <div class="canvas-container" id="canvas-container">
+        <svg
+          id="canvas-svg"
+          viewBox="0 0 1200 800"
+          preserveAspectRatio="xMidYMid meet"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <!-- 网格背景图案 -->
+          <defs>
+            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+              <circle cx="0.5" cy="0.5" r="0.5" fill="rgba(0,0,0,0.06)"/>
+            </pattern>
+          </defs>
+          <rect width="1200" height="800" fill="url(#grid)"/>
+        </svg>
+      </div>
+
+      <!-- 底部操作提示 -->
+      <div class="tooltip" id="tooltip"></div>
+    </main>
+  </div>
+
+  <!-- ========== 脚本 ========== -->
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
