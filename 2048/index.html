@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, touch-action: none">
+<link rel="stylesheet" href="style.css">
+<title>2048 - 无限合成</title>
+
+</head>
+<body>
+
+<div class="game-wrapper">
+  <div class="game-container">
+    <!-- Header -->
+    <div class="header">
+      <div class="title">2048</div>
+      <div class="scores">
+        <div class="score-box">
+          <div class="score-label">分数</div>
+          <div class="score-value" id="score">0</div>
+        </div>
+        <div class="score-box">
+          <div class="score-label">最佳</div>
+          <div class="score-value" id="best">0</div>
+        </div>
+      </div>
+      <button class="btn-new-game" id="btnNewGame">新游戏</button>
+    </div>
+
+    <!-- Info -->
+    <div class="info-bar">
+      <span>合并数字达到 <strong>2048</strong> 即可获胜！可继续无限合成。</span>
+      <span>方向键 / <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span>
+    </div>
+
+    <!-- Display mode selector -->
+    <div class="mode-bar">
+      <label class="mode-label" for="displayModeSelect">数字显示：</label>
+      <select id="displayModeSelect" class="mode-select">
+        <option value="scientific">科学计数法（2^n）</option>
+        <option value="normal">完整数字</option>
+      </select>
+    </div>
+
+    <!-- Grid -->
+    <div class="grid-wrapper" id="gridWrapper">
+      <div class="grid-bg">
+        <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+        <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+        <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+        <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+      </div>
+      <div class="tiles-layer" id="tilesLayer"></div>
+
+      <!-- Game Over Overlay -->
+      <div class="overlay hidden" id="overlayGameOver">
+        <div class="overlay-text">游戏结束!</div>
+        <div class="overlay-sub" id="overlaySub"></div>
+        <button class="btn-new-game" onclick="game.restart()">再来一局</button>
+      </div>
+
+      <!-- Win Overlay -->
+      <div class="overlay hidden" id="overlayWin">
+        <div class="overlay-text">🎉 你赢了!</div>
+        <div class="overlay-sub">已达到 2048，继续挑战更高分吧！</div>
+        <button class="btn-new-game" id="btnContinue" style="margin-bottom:4px">继续游戏</button>
+        <button class="btn-new-game" onclick="game.restart()">重新开始</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Decimal.js: arbitrary-precision arithmetic -->
+<script src="https://cdn.jsdelivr.net/npm/decimal.js@10.4.3/decimal.min.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>

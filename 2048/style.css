@@ -1,0 +1,349 @@
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  background: #faf8ef;
+  color: #776e65;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+/* ===== Container ===== */
+.game-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%; height: 100%;
+  padding: 12px;
+}
+
+.game-container {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ===== Header ===== */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.title {
+  font-size: clamp(28px, 6vw, 48px);
+  font-weight: 900;
+  color: #776e65;
+  letter-spacing: -1px;
+}
+
+.scores {
+  display: flex;
+  gap: 8px;
+}
+
+.score-box {
+  background: #bbada0;
+  color: #fff;
+  border-radius: 6px;
+  padding: 6px 14px;
+  text-align: center;
+  min-width: 72px;
+}
+
+.score-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.8;
+}
+
+.score-value {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120px;
+}
+
+.btn-new-game {
+  background: #8f7a66;
+  color: #f9f6f2;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.btn-new-game:hover { background: #9f8b77; }
+.btn-new-game:active { background: #7a6655; transform: scale(0.97); }
+
+/* ===== Info Bar ===== */
+.info-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #9e9488;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.info-bar kbd {
+  background: #eee4da;
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-family: inherit;
+  font-size: 12px;
+  border: 1px solid #d6cdc4;
+}
+
+/* ===== Display mode bar ===== */
+.mode-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #9e9488;
+  flex-wrap: wrap;
+}
+
+.mode-label {
+  white-space: nowrap;
+  font-weight: 600;
+  color: #776e65;
+}
+
+.mode-select {
+  font-family: inherit;
+  font-size: 12px;
+  color: #776e65;
+  background: #f9f6f2;
+  border: 1px solid #d6cdc4;
+  border-radius: 4px;
+  padding: 3px 8px;
+  cursor: pointer;
+  outline: none;
+  flex: 1;
+  min-width: 120px;
+  max-width: 220px;
+}
+
+.mode-select:focus {
+  border-color: #f59563;
+}
+
+/* ===== Grid ===== */
+.grid-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: min(500px, calc(100vh - 170px));
+  aspect-ratio: 1 / 1;
+}
+
+.grid-bg {
+  position: absolute;
+  inset: 0;
+  background: #bbada0;
+  border-radius: 8px;
+  display: grid;
+  gap: 2.5%;
+  padding: 2.5%;
+}
+
+.grid-cell {
+  background: rgba(238, 228, 218, 0.35);
+  border-radius: 5px;
+}
+
+/* ===== Tiles Layer ===== */
+.tiles-layer {
+  position: absolute;
+  inset: 2.5%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.tile {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  border-radius: 5px;
+  transition: left 100ms ease-in-out, top 100ms ease-in-out;
+  z-index: 1;
+  text-align: center;
+  word-break: break-all;
+  overflow: hidden;
+  line-height: 1.15;
+  padding: 3px;
+  white-space: normal;
+}
+
+.tile-removing {
+  transition: left 100ms ease-in-out, top 100ms ease-in-out, opacity 100ms ease-in-out;
+  opacity: 0;
+  z-index: 0;
+}
+
+/* ===== Tile Colors — 经典档 (2–2048) ===== */
+.tile-2    { background: #eee4da; color: #776e65; }
+.tile-4    { background: #ede0c8; color: #776e65; }
+.tile-8    { background: #f2b179; color: #f9f6f2; }
+.tile-16   { background: #f59563; color: #f9f6f2; }
+.tile-32   { background: #f67c5f; color: #f9f6f2; }
+.tile-64   { background: #f65e3b; color: #f9f6f2; }
+.tile-128  { background: #edcf72; color: #f9f6f2; }
+.tile-256  { background: #edcc61; color: #f9f6f2; }
+.tile-512  { background: #edc850; color: #f9f6f2; }
+.tile-1024 { background: #edc53f; color: #f9f6f2; }
+.tile-2048 { background: #edc22e; color: #f9f6f2; }
+
+/*
+  ===== Tile Colors — 扩展档 (2^12 ~ 2^31) =====
+  色彩逻辑：
+    2^12–2^15 : 绿色系（清新 → 翠绿）
+    2^16–2^19 : 青色系（天蓝 → 深青）
+    2^20–2^23 : 蓝紫系（淡蓝 → 深紫）
+    2^24–2^27 : 玫瑰系（粉红 → 深玫瑰）
+    2^28–2^31 : 金橙系（浅金 → 橙红）
+  超出 2^31  : 由 JS 动态生成颜色（HSL 色轮循环）
+*/
+.tile-e12 { background: #7ec850; color: #f9f6f2; }   /* 2^12  4096   */
+.tile-e13 { background: #56b33c; color: #f9f6f2; }   /* 2^13  8192   */
+.tile-e14 { background: #36962a; color: #f9f6f2; }   /* 2^14  16384  */
+.tile-e15 { background: #1e7a1a; color: #f9f6f2; }   /* 2^15  32768  */
+.tile-e16 { background: #4dd9d9; color: #f9f6f2; }   /* 2^16  65536  */
+.tile-e17 { background: #22bfbf; color: #f9f6f2; }   /* 2^17  131072 */
+.tile-e18 { background: #129898; color: #f9f6f2; }   /* 2^18  262144 */
+.tile-e19 { background: #0a7575; color: #f9f6f2; }   /* 2^19  524288 */
+.tile-e20 { background: #7b8fd4; color: #f9f6f2; }   /* 2^20  1M     */
+.tile-e21 { background: #5b6fc0; color: #f9f6f2; }   /* 2^21         */
+.tile-e22 { background: #4050a8; color: #f9f6f2; }   /* 2^22         */
+.tile-e23 { background: #2d3690; color: #f9f6f2; }   /* 2^23         */
+.tile-e24 { background: #e07ab0; color: #f9f6f2; }   /* 2^24         */
+.tile-e25 { background: #cc5090; color: #f9f6f2; }   /* 2^25         */
+.tile-e26 { background: #b83070; color: #f9f6f2; }   /* 2^26         */
+.tile-e27 { background: #961558; color: #f9f6f2; }   /* 2^27         */
+.tile-e28 { background: #f0c040; color: #3c3a32; }   /* 2^28  gold   */
+.tile-e29 { background: #e8a020; color: #3c3a32; }   /* 2^29         */
+.tile-e30 { background: #e07800; color: #f9f6f2; }   /* 2^30         */
+.tile-e31 { background: #cc5000; color: #f9f6f2; }   /* 2^31         */
+/* 2^32+ : dynamically set via inline style by getTileColor() in JS */
+
+/* ===== Animations ===== */
+@keyframes tile-pop {
+  0%   { transform: scale(0); }
+  50%  { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes tile-merge-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+.tile-new {
+  animation: tile-pop 200ms ease-in-out;
+}
+
+.tile-merged {
+  animation: tile-merge-pop 200ms ease-in-out;
+  z-index: 2;
+}
+
+/* ===== Overlay ===== */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(238, 228, 218, 0.73);
+  border-radius: 8px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: opacity 0.3s;
+}
+
+.overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.overlay-text {
+  font-size: clamp(28px, 6vw, 42px);
+  font-weight: 900;
+  color: #776e65;
+}
+
+.overlay-sub {
+  font-size: 14px;
+  color: #9e9488;
+}
+
+.overlay .btn-new-game {
+  font-size: 16px;
+  padding: 12px 28px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 520px) {
+  .game-container { gap: 6px; }
+  .game-wrapper { padding: 8px; }
+  .header { gap: 6px; }
+  .title { font-size: clamp(24px, 7vw, 36px); }
+  .score-box { min-width: 56px; padding: 4px 8px; }
+  .score-label { font-size: 9px; }
+  .score-value { font-size: 16px; }
+  .btn-new-game { padding: 7px 12px; font-size: 12px; border-radius: 5px; }
+  .info-bar { font-size: 11px; gap: 2px; flex-wrap: nowrap; }
+  .info-bar kbd { font-size: 10px; padding: 0 4px; }
+  .grid-wrapper { border-radius: 6px; }
+  .grid-bg { border-radius: 6px; }
+  .overlay-text { font-size: clamp(22px, 6vw, 32px); }
+  .overlay .btn-new-game { font-size: 14px; padding: 10px 20px; }
+}
+
+@media (max-width: 360px) {
+  .game-container { gap: 4px; }
+  .game-wrapper { padding: 6px; }
+  .title { font-size: 24px; }
+  .score-box { min-width: 48px; padding: 3px 6px; }
+  .score-value { font-size: 14px; }
+  .btn-new-game { padding: 6px 10px; font-size: 11px; }
+  .info-bar { font-size: 10px; }
+  .info-bar kbd { font-size: 9px; }
+  .overlay-text { font-size: 22px; }
+  .overlay-sub { font-size: 12px; }
+}
+
+@media (min-width: 521px) {
+  .tile { border-radius: 6px; }
+}
+
+/* ===== Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .tile { transition: none !important; }
+  .tile-new, .tile-merged { animation: none !important; }
+}
