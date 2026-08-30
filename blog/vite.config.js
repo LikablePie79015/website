@@ -14,7 +14,7 @@ function copyPosts() {
 }
 
 export default {
-  base: "./",
+  base: "./blog/",
   plugins: [copyPosts()],
   build: {
     outDir: "dist",
