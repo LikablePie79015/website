@@ -1,0 +1,9 @@
+{
+  "siteTitle": "我的个人博客",
+  "siteDescription": "记录技术、数学与生活",
+  "author": "作者名",
+  "avatar": "🧑‍💻",
+  "nav": [
+    { "label": "首页", "link": "./index.html" }
+  ]
+}
